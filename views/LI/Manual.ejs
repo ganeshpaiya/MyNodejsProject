@@ -1,0 +1,863 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <% include ../partials/head %>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var newURL = window.location.pathname;
+
+            LoadHeader();
+            Loaddropdownlist();
+
+
+        });
+    </script>
+    <script type="text/javascript">
+        function Loaddropdownlist() {
+            $.ajax(
+                {
+                    type: "get",
+
+                    url: "/LI/Manual/Getname",
+                    data: '',
+                    dataType: "json",
+                    success: function (rows) {
+
+                        var len = rows.length;
+
+                        $("#ddlFARName").empty();
+                        for (var i = 0; i < len; i++) {
+                            var id = rows[i]['FACode'];
+                            var name = rows[i]['FARName'];
+
+                            $("#ddlFARName").append("<option value='" + id + "'>" + name + "</option>");
+
+                        }
+                    }
+                });
+
+        }
+    </script>
+    <script type="text/javascript">
+        function LoadHeader() {
+            $.ajax(
+                {
+                    type: "get",
+
+                    url: "/LI/Manual/GetHeader",
+                    data: '',
+                    dataType: "json",
+                    success: function (rows) {
+
+                        var len = rows.length;
+
+
+                        for (var i = 0; i < len; i++) {
+                            var UploadID = rows[i]['UploadID'];
+                            var UploadUniqueID = rows[i]['UploadUniqueID'];
+                            var InsurerName = rows[i]['InsurerName'];
+                            var StatementDate = rows[i]['StatementDate'];
+                            var TotalRevenue = rows[i]['TotalRevenue'];
+                            alert(document.getElementById("hf_UploadUniqueID").value = UploadUniqueID);
+                            document.getElementById("hf_UploadID").value = UploadID;
+                            document.getElementById("hf_UploadUniqueID").value = UploadUniqueID;
+                            document.getElementById("txtStatementDate").value = StatementDate;
+                            document.getElementById("txtShowTotalRevenue").value = TotalRevenue;
+                            document.getElementById("txtCompanyName").value = InsurerName;
+
+
+                        }
+                        Load_PaymentData();
+                    }
+
+                });
+
+
+        }
+    </script>
+    <script type="text/javascript">
+
+        function Load_PaymentData() {
+
+
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                url: "/LI/Manual/GetManualData",
+
+                data: {
+                    UploadUniqueID: document.getElementById("hf_UploadUniqueID").value
+                },
+                success: function (results) {
+
+                    $('#PaymentData').DataTable({
+                        destroy: true,
+                        data: results,
+                        columns: [
+                            { 'data': 'FARCode' },
+                            { 'data': 'FARName' },
+                            { 'data': 'FARStatus' },
+                            //{ 'data': 'PolicyNumber' },
+                            {
+                                'data': 'PolicyNumber',
+                                "render": function (data, type, full, meta) {
+                                    return '<a href ="' + full.iBOSSURL + '" target="_blank">' + full.PolicyNumber + '</a>';
+                                    //return '<input type="checkbox" class="editor-active">';
+                                }
+                            },
+                            { 'data': 'ClientName' },
+                            { 'data': 'PlanName' },
+                            { 'data': 'CommencementDate' },
+
+                            { 'data': 'Frequency' },
+                            { 'data': 'PremiumPaid', 'render': function (PremiumPaid) { return '$ ' + PremiumPaid; } },
+
+                            //{ 'data': 'BasicComm', 'render': function (BasicComm) { return '$ ' + BasicComm; } },
+                            //{ 'data': 'BasicORComm', 'render': function (BasicORComm) { return '$ ' + BasicORComm; } },
+                            { 'data': 'TotalRevenue', 'render': function (TotalRevenue) { return '$ ' + TotalRevenue; } },
+                            { 'data': 'Bonus', 'render': function (Bonus) { return '$ ' + Bonus; } },
+                            { 'data': 'Others', 'render': function (Others) { return '$ ' + Others; } },
+                            { 'data': 'TRWithoutGST', 'render': function (TRWithoutGST) { return '$ ' + TRWithoutGST; } },
+                            { 'data': 'GSTAmount', 'render': function (GSTAmount) { return '$ ' + GSTAmount; } },
+                            { 'data': 'TRWithGST', 'render': function (TRWithGST) { return '$ ' + TRWithGST; } },
+                            { 'data': 'FARPercentage', 'render': function (FARPercentage) { return FARPercentage + ' %'; } },
+                            {
+                                'data': 'FARType', 'render': function (FARType) {
+                                    if (FARType === 'Vesting FAR') {
+                                        return '<span class="label label-warning">' + FARType + '</span>';
+                                    }
+                                    else if (FARType === 'Joint Work FAR') {
+                                        return '<span class="label label-info">' + FARType + '</span>';
+                                    }
+                                    return FARType;
+                                }
+                            },
+
+
+                            { 'data': 'FARTR', 'render': function (FARTR) { return '$ ' + FARTR; } },
+
+
+                            { 'data': 'PolicyYear' },
+                            { 'data': 'RevenueStatus' },
+                            { 'data': 'FARverification' },
+                            { 'data': 'PolicyVerification' },
+                            { 'data': 'AdminRemarks' },
+                            {
+                                'data': 'Edit_url', 'render': function (data, type, full, meta) {
+                                    return '<button type ="button" class="btn-sm btn-success" data-toggle="modal" data-target="#myModal_edit" data-url ="' + full.Edit_URL + '">Edit</button>';
+                                }
+                            },
+                            {
+                                'data': 'Delete_url', 'render': function (data, type, full, meta) {
+                                    return '<button type = "button" class="btn-sm btn-danger" data-toggle="modal" data-target="#myModal_delete" data-url = "' + full.Delete_URL + '">Delete</button>';
+                                }
+                            }
+
+                        ],
+                        stateSave: true,
+                        //responsive: true,
+                        "dom": 'T<"clear">lfrtip',
+                        "tableTools": {
+                            "sSwfPath": "/js/plugins/dataTables/swf/copy_csv_xls_pdf.swf"
+                        },
+
+                        columnDefs: [
+                            { width: "80px", targets: 0 }, //FAR Code
+                            { width: "250px", targets: 1 }, //FAR Name
+                            { width: "80px", targets: 2 }, //FAR Status
+                            { width: "80px", targets: 3 }, //Policy Number
+                            { width: "250px", targets: 4 }, //Client Name
+                            { width: "250px", targets: 5 }, //Plan Name
+                            { width: "80px", targets: 6 }, //Commencement Date
+                            { width: "80px", targets: 7 }, //Premium Mode
+                            { width: "80px", targets: 8 }, //Premium Paid
+                            { width: "80px", targets: 9 }, //Basic Comm
+                            { width: "80px", targets: 10 }, //Basic OR Comm
+                            { width: "80px", targets: 11 },//Bonus
+                            { width: "80px", targets: 12 },//Others
+                            { width: "80px", targets: 13 }, //TR W/O GST
+                            { width: "80px", targets: 14 }, //FAR Percentage
+                            { width: "100px", targets: 13 }, //FAR Type
+                            { width: "80px", targets: 15 }, //FAR TR
+                            { width: "80px", targets: 15 }, //FAR BI
+                            { width: "80px", targets: 16 }, //Premium Year
+                            { width: "80px", targets: 17 }, //Revenue Status
+                            { width: "80px", targets: 18 }, //FAR Verification
+                            { width: "80px", targets: 19 }, //Policy Verification
+                            { width: "150px", targets: 20 }, //Admin Remarks
+                        ],
+                        scrollY: "400px",
+                        scrollX: true,
+                        scrollCollapse: true,
+                        fixedColumns: {
+                            leftColumns: 3,
+                        },
+                        order: [[1, 'asc']],
+
+                    });
+
+
+                }
+            });
+        }
+
+        $(document).ready(function () {
+
+            //loading the page
+            $(document).ajaxStart(function () {
+                $("#spinner").css("display", "block");
+            });
+
+
+
+            $('#myModal_edit').on('show.bs.modal', function (event) {
+                // Get the record's ID via attribute
+                var url = event.relatedTarget.dataset.url;
+                $('#ifrm_update').attr("src", url);
+            });
+
+            $('#myModal_delete').on('show.bs.modal', function (event) {
+                // Get the record's ID via attribute
+                var url = event.relatedTarget.dataset.url;
+                $('#ifrm_delete').attr("src", url);
+            });
+
+            $('#myModal_Find').on('show.bs.modal', function (event) {
+                var UniqueID = document.getElementById('hf_UploadUniqueID').value;
+                var CompanyName = document.getElementById('txtCompanyName').value;
+                var StatementDate = document.getElementById('txtStatementDate').value;
+                var TotalRevenue = document.getElementById('txtShowTotalRevenue').value;
+                var PolicyNumber = document.getElementById('txtSearchPolicyNumber').value;
+
+                var url = "../Includes/LI/Find_Policy?UniqueID=" + UniqueID + "&CompanyName=" + CompanyName + "&StatementDate=" + StatementDate + "&PolicyNumber=" + PolicyNumber + "&TotalRevenue=" + TotalRevenue + "";
+                $('#ifrm_find').attr("src", url);
+
+            });
+
+
+            $(document).ajaxComplete(function () {
+                $("#spinner").css("display", "none");
+            });
+        });
+
+        function startCalc() {
+            var sta = false;
+
+            var FARPercentage = document.getElementById("txtFARPercentage").value;
+            var TR = document.getElementById("txtTotalRevenue").value;
+            var GST = document.getElementById("txtGST").value;
+            var Bonus = document.getElementById("txtBonus").value;
+            var Others = document.getElementById("txtOthers").value;
+
+            if (TR != "") {
+                if (FARPercentage != "") {
+
+                    // var FARBI = (parseFloat(TR));
+                    if (Bonus != "" && Others != "") {
+                        var txtTRWoutGST = +Bonus + +TR + +Others;
+                        //var txtTRWoutGSTO = +Others + +txtTRWoutGSTB;
+                        // var txtTRWoutGST = +txtTRWoutGSTB + +txtTRWoutGSTO;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else if (Others != "" && Bonus == "") {
+                        var txtTRWoutGST = +Others + +TR;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else if (Others == "" && Bonus != "") {
+                        var txtTRWoutGST = +Bonus + +TR;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else {
+                        txtTRWithoutGST.value = "" + parseFloat(TR).toFixed(2) + "";
+                    }
+
+                    var FARBI = ((parseFloat(txtTRWithoutGST.value)) * (parseFloat(FARPercentage) / 100));
+                    var txtFARBI = document.getElementById("txtFARBI");
+                    txtFARBI.value = "" + parseFloat(FARBI).toFixed(2) + "";
+
+                }
+                else {
+                    var FARBI = (parseFloat(txtTRWithoutGST.value));
+                    var txtFARBI = document.getElementById("txtFARBI");
+                    txtFARBI.value = "" + parseFloat(FARBI).toFixed(2) + "";
+                }
+            }
+            else {
+
+
+            }
+
+
+            if (GST != "") {
+                var TRWithGST = +GST + +txtTRWithoutGST.value;
+                var txtTRwithGST = document.getElementById("txtTRwithGST");
+                txtTRwithGST.value = "" + parseFloat(TRWithGST) + "";
+            }
+            else {
+                var TRWithGST = +GST + +txtTRWithoutGST.value;
+                var txtTRwithGST = document.getElementById("txtTRwithGST");
+                txtTRwithGST.value = "" + parseFloat(TRWithGST) + "";
+            }
+        }
+    </script>
+    <script type="text/javascript">
+        function Manualadd() {
+
+
+            var ddlFARName = $("#ddlFARName option:selected").text();
+            var fields = ddlFARName.split(/[_[\](\)]/);
+            var FARName = fields[0];
+            var FARCode = fields[2];
+            var FARStatus = fields[5];
+
+
+            //if(!txtTrWithGST || !txtTotalRevenue || !ddlCompanyName || !CommType || !txtStatementDate ){
+            //alert("TRWithGST,TotalRevenue,Company Name,Commission Type,Statement Date:This Fileds Should Not Empty");
+            // }
+            var data = {};
+            data.FARCode = FARCode;
+            data.FARStatus = FARStatus;
+            data.FARName = FARName;
+            data.UploadUniqueID = $('#hf_UploadUniqueID').val();
+            data.txtCompanyName = $('#txtCompanyName').val();
+            data.ddlFARName = $('#ddlFARName').val();
+            data.txtClientName = $('#txtClientName').val();
+            data.txtPlanName = $('#txtPlanName').val();
+            data.txtPolicyNumber = $('#txtPolicyNumber').val();
+            data.txtCommencementDate = $('#txtCommencementDate').val();
+            data.ddlPremiumMode = $('#ddlPremiumMode').val();
+            data.ddlFARType = $('#ddlFARType').val();
+            data.txtFARPercentage = $('#txtFARPercentage').val();
+            data.txtFARPercentage = $('#txtFARPercentage').val();
+            data.txtTotalRevenue = $('#txtTotalRevenue').val();
+            data.txtBonus = $('#txtBonus').val();
+            data.txtOthers = $('#txtOthers').val();
+            data.txtTRWithoutGST = $('#txtTRWithoutGST').val();
+            data.txtGST = $('#txtGST').val();
+            data.txtTrWithGST = $('#txtTrWithGST').val();
+            data.txtFARBI = $('#txtFARBI').val();
+            data.txtPremiumYear = $('#txtPremiumYear').val();
+            data.ddlRevenueStatus = $('#ddlRevenueStatus').val();
+            data.txtAdminRemarks = $('#txtAdminRemarks').val();
+
+
+            JSON.stringify(data);
+
+            $.ajax(
+                {
+                    type: "POST",
+                    url: "/LI/Manual/Manualadd",
+                    data: data,
+
+                    dataType: "json",
+                    success: function (data) {
+                        alert(data);
+                    }
+
+
+                });
+
+        }
+    </script>
+    <style>
+        .modal_Load {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: black;
+            z-index: 99;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+            -moz-opacity: 0.8;
+            min-height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <% include ../partials/header %>
+        <div class="row wrapper  white-bg page-heading">
+
+
+            <div class="col-sm-4">
+                <h2>LI Manual Entry Page</h2>
+                <ol class="breadcrumb">
+                    <li>
+                        <a href="index">Dashboard</a>
+                    </li>
+                    <li>LI Directory</li>
+                    <li class="active">
+                        <strong>Manual Entry</strong>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+
+        <form runat="server" class="form-horizontal">
+            <div class="row">
+                <div class="col-xs-12">
+
+                    <!-- Find Payment Data
+                    <div class="example-modal">
+                        <div class="modal" id="myModal_Find">
+                            <div class="modal-dialog" style="width: 1500px; height: 350px;">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title">Find Policy Number from iBOSS</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <iframe id="ifrm_find" style="border: none; width: 100%; height: 660px;"></iframe>
+                                    </div>
+
+                                </div>
+                                <!-- /.modal-content -->
+                </div>
+                <!-- /.modal-dialog -->
+            </div>
+            <!-- /.modal -->
+   
+    <!-- /.example-modal -->
+    <!-- Edit Payment Data -->
+    <div class="example-modal">
+        <div class="modal" id="myModal_edit">
+            <div class="modal-dialog modal-lg" role="application">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Edit Manual Entry records</h4>
+                    </div>
+                    <div class="modal-body">
+                        <iframe id="ifrm_update" style="border: none; width: 100%; height: 740px"></iframe>
+                    </div>
+
+                    <button type="button" ID="btnCancel" class="btn btn-default pull-left" Text="Close" />
+                </div>--%>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    <!-- /.modal -->
+    
+    <!-- /.example-modal -->
+    <!-- Delete the Upload Statement -->
+    <div class="example-modal">
+        <div class="modal border-right" id="myModal_delete">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Delete Manual Entry records</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="box-body">
+                            <iframe id="ifrm_delete" name="ifrm_update" style="border: none; width: 100%; height: 115px"></iframe>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <!-- /.example-modal -->
+
+    <div class="box">
+        <div class="row">
+            <input id="hf_UploadUniqueID" type="hidden" name="hf_UploadUniqueID">
+            <input id="hf_UploadID" type="hidden" name="hf_UploadID">
+
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Filter Option</h5>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <label class="font-normal">Company Name</label>
+                                <input type="text" ID="txtCompanyName" class="form-control" ReadOnly="true" />
+                            </div>
+                            <div class="col-lg-4">
+                                <label class="font-normal">Statement Date</label>
+                                <input type="text" ID="txtStatementDate" class="form-control" ReadOnly="true" />
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="font-normal">Total Revenue (GST)</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                    <input type="text" ID="txtShowTotalRevenue" class="form-control" ReadOnly="true" />
+                                </div>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="font-normal">Received TR (GST)</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                    <input type="text" ID="txtShowReceivedTR" class="form-control" ReadOnly="true" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row b-r">
+                            &nbsp;
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <label class="font-normal">Policy Number</label>
+                                <input type="text" ID="txtSearchPolicyNumber" class="form-control" runat="server" />
+                            </div>
+                            <div class="col-lg-4">
+                                <label class="font-normal">&nbsp;</label>
+                                <div class="input-group">
+                                    <button type="button" class="btn btn-rounded btn-success" data-toggle="modal" data-target="#myModal_Find" title="Search" id="btnSearch">Retrieve Policy from iBOSS</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row b-r">
+                            &nbsp;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>Manual Entry</h5>
+            </div>
+            <div class="ibox-content">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <label>FARName</label>
+                        <select ID="ddlFARName" class="form-control">
+                            <option selected="selected" value="0">--Select--</option>
+                        </select>
+
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>ClientName</label>
+                        <input type="text" ID="txtClientName" class="form-control" placeholder="Client Name" />
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>PlanName</label>
+                        <input type="text" ID="txtPlanName" name="txtPlanName" class="form-control" placeholder="Plan Name" />
+                    </div>
+                </div>
+                <div class="row b-r">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <label>PolicyNumber</label>
+                        <input type="text" ID="txtPolicyNumber" class="form-control" placeholder="Policy Number" />
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <div id="CommencementDate">
+                            <label>CommencementDate</label>
+                            <div class="input-group date">
+                                <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                <input type="text" ID="txtCommencementDate" name="txtCommencementDate" class="form-control" placeholder="Commencement Date" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>PremiumMode</label>
+                        <select ID="ddlPremiumMode" class="form-control" placeholder="Premium Mode">
+                            <option selected="selected" value="0">--Select--</option>
+
+                            <option Value="Y">Y</option>
+                            <option Value="H">H</option>
+                            <option Value="Q">Q</option>
+                            <option Value="M">M</option>
+                            <option Value="S">S</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row b-r">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <label>PremiumPaid</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtPremiumPaid" name="txtPremiumPaid" class="form-control" placeholder="Premium Paid" />
+                        </div>
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>FARType</label>
+                        <select ID="ddlFARType" class="form-control" placeholder="FAR Type">
+                            <option selected="selected" value="0">--Select--</option>
+                            <option Value="Jointwork">Jointwork</option>
+                            <option Value="Servicing FAR">Servicing FAR</option>
+                            <option Value="Vesting">Vesting</option>
+                            <option Value="Intern">Intern</option>
+
+                        </select>
+                    </div>
+
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+
+                        <label>FAR Percentage</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa">&#xf295;</i></div>
+                            <input type="text" ID="txtFARPercentage" class="form-control" onchange="startCalc();" placeholder="FAR Percentage" />
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+
+                <div class="row b-r">
+                    &nbsp;
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-3">
+                        <label>Total Revenue</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtTotalRevenue" name="txtTotalRevenue" class="form-control" onchange="startCalc();" placeholder="Total Revenue" />
+                        </div>
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Bonus</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtBonus" name="txtBonus" class="form-control" onchange="startCalc();" placeholder="Bonus" />
+                        </div>
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>Others</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtOthers" name="txtOthers" class="form-control" onchange="startCalc();" placeholder="Others" />
+                        </div>
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+
+                    <div class="col-sm-1">
+                    </div>
+                </div>
+
+                <div class="row b-r">
+                    &nbsp;
+                </div>
+                <div class="row">
+
+
+
+                    <div class="col-sm-3">
+                        <label>TR W/O GST</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtTRWithoutGST" name="txtTRWithoutGST" class="form-control" onchange="startCalc();" placeholder="TR W/O GST" />
+                        </div>
+                    </div>
+
+                    <div class="col-sm-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>GST</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtGST" name="txtGST" class="form-control" onchange="startCalc();" placeholder="GST" />
+                        </div>
+                    </div>
+
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>TR with GST</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtTRwithGST" name="txtTRwithGST" class="form-control" placeholder="Total Revenue with GST" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row b-r">
+                    &nbsp;
+                </div>
+                <div class="row">
+                </div>
+                <div class="row b-r">
+                    &nbsp;
+                </div>
+                <div class="row">
+
+                    <div class="col-sm-3">
+                        <label>FAR TR</label>
+                        <div class="input-group date">
+                            <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                            <input type="text" ID="txtFARBI" name="txtFARBI" class="form-control" placeholder="FAR TR" />
+                        </div>
+                    </div>
+                    <div class="col-lg-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>PremiumYear</label>
+                        <input type="text" ID="txtPremiumYear" name="txtPremiumYear" class="form-control" runat="server" placeholder="Premium Year" />
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <div class="col-sm-3">
+                        <label>RevenueStatus</label>
+                        <select ID="ddlRevenueStatus" class="form-control" placeholder="Revenue Status">
+                            <option selected="selected" value="0">--Select--</option>
+                            <option Value="NTR">NTR</option>
+                            <option Value="RTR">RTR</option>
+                            <option Value="SNTR">SNTR</option>
+                            <option Value="SRTR">SRTR</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row b-r">
+                    &nbsp;
+                </div>
+                <div class="row">
+                    <div class="col-sm-7">
+                        <label>Admin Remarks</label>
+                        <input type="text" ID="txtAdminRemarks" name="txtAdminRemarks" class="form-control" runat="server" placeholder="Admin Remarks" />
+                    </div>
+                    <div class="col-sm-1">
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="font-normal">&nbsp;</label>
+                        <div class="input-group">
+
+                            <button type="Button" ID="btnCancel" class="btn btn-rounded btn-default" Text="Cancel"> Cancel </button>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <button type="Button" ID="btnInsert" class="btn btn-rounded btn-success" onclick="Manualadd()"> Save and Add new</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="modal_Load" id="spinner">
+            <div class="spiner-example">
+                <div class="sk-spinner sk-spinner-wave">
+                    <div class="sk-rect1"></div>
+                    <div class="sk-rect2"></div>
+                    <div class="sk-rect3"></div>
+                    <div class="sk-rect4"></div>
+                    <div class="sk-rect5"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <div class="row">
+                            <div class="col-lg-6">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="table-responsive">
+                            <table id="PaymentData" class="table table-striped table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>FAR Code</th>
+                                        <th>FAR Name</th>
+                                        <th>FAR Status</th>
+                                        <th>Policy Number</th>
+                                        <th>Client Name</th>
+                                        <th>Plan Name</th>
+                                        <th>Commencement Date</th>
+                                        <th>Premium Mode</th>
+                                        <th>Premium Paid</th>
+                                        <th>Total Revenue</th>
+                                        <th>Bonus</th>
+                                        <th>Others</th>
+                                        <th>TR W/O GST</th>
+                                        <th>GST</th>
+                                        <th>TR with GST</th>
+                                        <th>FAR Percentage</th>
+                                        <th>FAR Type</th>
+
+                                        <th>FAR TR</th>
+                                        <th>Premium Year</th>
+                                        <th>Revenue Status</th>
+                                        <th>FAR Verification</th>
+                                        <th>Policy Verification</th>
+                                        <th>Admin Remarks</th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+
+
+    </form>
+
+
+
+
+
+    <% include ../partials/footer %>
+    </div>
+    <script>
+        $(document).ready(function () {
+
+            $('#CommencementDate .input-group.date').datepicker({
+                startView: 1,
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: "yyyy-mm-dd"
+            });
+        });
+    </script>
+
+</body>
+</html>

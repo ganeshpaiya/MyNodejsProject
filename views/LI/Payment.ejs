@@ -1,0 +1,613 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <% include ../partials/head %>
+    <script type="text/javascript">
+        function Load_GetLICommpanyName() {
+
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/CommonScript/GetLICommpanyName",
+                data: "",
+                success: function (results) {
+                    var len = results.length;
+                    $('#ddlSearchCompanyName').empty();
+                    $("#ddlSearchCompanyName").append("<option value=Select>--Select--</option>");
+                    for (var i = 0; i < len; i++) {
+                        var id = results[i]['InsuranceBrokerID'];
+                        var name = results[i]['BrokerName'];
+                       
+                        $("#ddlSearchCompanyName").append("<option value='" + id + "'>" + name + "</option>");
+
+                    }
+
+                }
+
+            });
+        }
+        function ddlCompanyName_SelectedIndexChanged() {
+                      
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+          
+            var parameters = { CompanyName: CompanyName, };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/LI/Payment/payoutdate",
+                data: parameters,
+                success: function (results) {
+                    $('#ddlSearchPayoutDate').empty();
+                    $("#ddlSearchPayoutDate").append("<option value=Select>--Select--</option>");
+                    var len = results.length;
+                    for (var i = 0; i < len; i++) {
+                        var PayoutDate = results[i]['PayoutDate'];
+                       
+                        $("#ddlSearchPayoutDate").append("<option value='" + PayoutDate + "'>" + PayoutDate + "</option>");
+
+                    }
+
+                }
+            });
+        }
+        function ddlSearchPayoutDate_SelectedIndexChanged() {
+
+            TRWithoutGST();
+            FARTR();
+            Adjustment();
+            TotalFARTR();
+            Load_PaymentData();
+        }
+        function TRWithoutGST() {
+           
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var PayoutDate = $('#ddlSearchPayoutDate option:selected').text();
+            var GetPayoutDate = new Date(PayoutDate);
+            var Payout = (GetPayoutDate.getFullYear() + '-' + (GetPayoutDate.getMonth() + 1) + '-' + GetPayoutDate.getDate());
+           
+            var parameters = { CompanyName: CompanyName, Payout: Payout };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/LI/Payment/TRWithoutGST",
+                data: parameters,
+                success: function (result) {
+                    $.each(result, function (i, item) {
+                        $("#txtTotalRevenue").val(item.TRWithoutGST);
+                    });
+                }
+            });
+        }
+        function FARTR() {
+            
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var PayoutDate = $('#ddlSearchPayoutDate option:selected').text();
+            var GetPayoutDate = new Date(PayoutDate);
+            var Payout = (GetPayoutDate.getFullYear() + '-' + (GetPayoutDate.getMonth() + 1) + '-' + GetPayoutDate.getDate());
+            var parameters = { CompanyName: CompanyName, Payout: Payout };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/LI/Payment/FARBI",
+                data: parameters,
+
+                success: function (result) {
+                    $.each(result, function (i, item) {
+                        $("#txtFARBI").val(item.FARBI);
+                    });
+                }
+            });
+        }
+        function Adjustment() {
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var PayoutDate = $('#ddlSearchPayoutDate option:selected').text();
+            var GetPayoutDate = new Date(PayoutDate);
+            var Payout = (GetPayoutDate.getFullYear() + '-' + (GetPayoutDate.getMonth() + 1) + '-' + GetPayoutDate.getDate());
+            var parameters = { CompanyName: CompanyName, Payout: Payout };
+
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/LI/Payment/Adjustment",
+                data: parameters,
+                success: function (result) {
+                    $.each(result, function (i, item) {
+                        $("#txtAdjustmentAmount").val(item.Adjustment);
+                    });
+                }
+            });
+        }
+        function TotalFARTR() {
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var PayoutDate = $('#ddlSearchPayoutDate option:selected').text();
+            var GetPayoutDate = new Date(PayoutDate);
+            var Payout = (GetPayoutDate.getFullYear() + '-' + (GetPayoutDate.getMonth() + 1) + '-' + GetPayoutDate.getDate());
+            var parameters = { CompanyName: CompanyName, Payout: Payout };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/LI/Payment/TotalFARTR",
+                data: parameters,
+                success: function (result) {
+                    $.each(result, function (i, item) {
+                        $("#txtBIPaid").val(item.TotalFARTR);
+                    });
+                }
+            });
+        }
+        function Load_PaymentData() {
+
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var PayoutDate = $('#ddlSearchPayoutDate option:selected').text();
+            var GetPayoutDate = new Date(PayoutDate);
+            var Payout = (GetPayoutDate.getFullYear() + '-' + (GetPayoutDate.getMonth() + 1) + '-' + GetPayoutDate.getDate());
+            var parameters = { CompanyName: CompanyName, Payout: Payout };
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                url: "/LI/Payment/GetPaymentData",
+                
+                data: parameters, 
+                success: function (data) {
+
+                    var datatableVariable = $('#PaymentData').DataTable({
+                        data: data,
+                        columns: [
+                            { 'data': 'FARCode' },
+                            { 'data': 'FARName' },
+                            { 'data': 'FARStatus' },
+                            //{ 'data': 'PolicyNumber' },
+                            {
+                                'data': 'PolicyNumber',
+                                "render": function (data, type, full, meta) {
+                                    return '<a href ="' + full.iBOSSURL + '" target="_blank">' + full.PolicyNumber + '</a>';
+                                    //return '<input type="checkbox" class="editor-active">';
+                                }
+                            },
+                            { 'data': 'ClientName' },
+                            { 'data': 'PlanName' },
+                            { 'data': 'CommencementDate' },
+                            { 'data': 'Frequency' },
+                            { 'data': 'PremiumPaid' }, //'render': function (PremiumPaid) { return '$ ' + PremiumPaid; } },
+                            //{ 'data': 'BasicComm', 'render': function (BasicComm) { return '$ ' + BasicComm; } },
+                            { 'data': 'TR' }, //'render': function (TotalRevenue) { return '$ ' + TotalRevenue; } },
+                            { 'data': 'Bonus' }, //'render': function (Bonus) { return '$ ' + Bonus; } },
+                            { 'data': 'Others' }, //'render': function (Others) { return '$ ' + Others; } },
+                            { 'data': 'TRWithoutGST' },// 'render': function (TRWithoutGST) { return '$ ' + TRWithoutGST; } },
+                            { 'data': 'GSTAmount' }, //'render': function (GSTAmount) { return '$ ' + GSTAmount; } },
+                            { 'data': 'TRWithGST' }, //'render': function (TRWithGST) { return '$ ' + TRWithGST; } },
+                            { 'data': 'FARPercentage', 'render': function (FARPercentage) { return FARPercentage + ' %'; } },
+                            {
+                                'data': 'FARType', 'render': function (FARType) {
+                                    if (FARType === 'Vesting FAR') {
+                                        return '<span class="label label-warning">' + FARType + '</span>';
+                                    }
+                                    else if (FARType === 'Joint Work FAR') {
+                                        return '<span class="label label-info">' + FARType + '</span>';
+                                    }
+                                    return FARType;
+                                }
+                            },
+                            { 'data': 'FARTR' },
+                            //{ 'data': 'FARBI' },
+                            { 'data': 'PolicyYear' },
+                            { 'data': 'RevenueStatus' },
+                            { 'data': 'FARVerification' },
+                            { 'data': 'PolicyVerification' },
+                            { 'data': 'AdminRemarks' },
+                            {
+                                'data': 'Edit_url',
+                                "render": function (data, type, full, meta) {
+                                    return '<button type = "button" class="btn-sm btn-primary" data-toggle="modal" data-target="#myModal_edit" data-url = "' + data + '&CompanyName=' + $('#ContentPlaceHolder1_ddlSearchCompanyName :selected').text() + '&PayoutDate=' + $('#ContentPlaceHolder1_ddlSearchPayoutDate :selected').text() + '">Edit</button>';
+                                    //return '<input type="checkbox" class="editor-active">';
+                                }
+                            },
+                            {
+                                'data': 'Delete_url',
+                                "render": function (data, type, full, meta) {
+                                    return '<button type = "button" class="btn-sm btn-danger" data-toggle="modal" data-target="#myModal_delete" data-url = "' + data + '&CompanyName=' + $('#ContentPlaceHolder1_ddlSearchCompanyName :selected').text() + '&PayoutDate=' + $('#ContentPlaceHolder1_ddlSearchPayoutDate :selected').text() + '">Delete</button>';
+                                    //return '<input type="checkbox" class="editor-active">';
+                                }
+                            },
+
+                        ],
+                        stateSave: true,
+                        //responsive: true,
+                        "dom": 'T<"clear">lfrtip',
+                        "tableTools": {
+                            "sSwfPath": "/js/plugins/dataTables/swf/copy_csv_xls_pdf.swf"
+                        },
+
+                        columnDefs: [
+                            //{
+                            //orderable: false,
+                            //className: 'select-checkbox',
+                            //targets: 1
+                            //},
+                            { width: "80px", targets: 0 }, //FAR Code
+                            { width: "150px", targets: 1 }, //FAR Name
+                            { width: "80px", targets: 2 }, //FAR Status
+                            { width: "80px", targets: 3 }, //Policy Number
+                            { width: "250px", targets: 4 }, //Client Name
+                            { width: "250px", targets: 5 }, //Plan Name
+                            { width: "80px", targets: 6 }, //Commencement Date
+                            { width: "80px", targets: 7 }, //Premium Mode
+                            { width: "80px", targets: 8 }, //Premium Paid
+                            { width: "80px", targets: 9 }, //Basic Comm
+                            { width: "80px", targets: 10 },//Bouns
+                            { width: "80px", targets: 11 },//Basic OR Comm
+                            { width: "80px", targets: 12 }, //Others
+                            { width: "80px", targets: 13 },//TotalRevenue
+                            { width: "80px", targets: 14 }, //TRWithGST
+                            { width: "80px", targets: 15 }, //FAR Percentage
+                            { width: "100px", targets: 16 }, //FAR Type
+                            { width: "80px", targets: 17 }, //FAR TR
+                            { width: "80px", targets: 18 }, //FAR BI
+                            { width: "80px", targets: 19 }, //Premium Year
+                            { width: "80px", targets: 20 }, //Revenue Status
+                            { width: "100px", targets: 21 }, //FAR Verification
+                            { width: "80px", targets: 22 }, //Policy Verification
+                            { width: "80px", targets: 23 }, //Admin Remarks
+                        ],
+                        scrollY: "400px",
+                        scrollX: true,
+                        scrollCollapse: true,
+                        fixedColumns: {
+                            leftColumns: 3,
+                        },
+                        order: [[1, 'asc']],
+                        //select: {
+                        //    style: 'os',
+                        //    selector: 'td:not(:last-child)' // no row selection on last column
+                        //}
+                    });
+
+                    //$('.showHide').on('click', function () {
+                    //    var tableColumn = datatableVariable.column($(this).attr('data-columnindex'));
+                    //    tableColumn.visible(!tableColumn.visible());
+                    //});
+
+                }
+            });
+        }
+
+        $(document).ready(function () {
+
+            //loading the page
+            $(document).ajaxStart(function () {
+                $("#spinner").css("display", "block");
+            });
+            Load_GetLICommpanyName();
+            //Load_PaymentData();
+
+            $('#myModal_edit').on('show.bs.modal', function (event) {
+                // Get the record's ID via attribute
+                var url = event.relatedTarget.dataset.url;
+                $('#ifrm_update').attr("src", url);
+            });
+
+            $('#myModal_delete').on('show.bs.modal', function (event) {
+                // Get the record's ID via attribute
+                var url = event.relatedTarget.dataset.url;
+                $('#ifrm_delete').attr("src", url);
+            });
+
+            $('#myModal_Find').on('show.bs.modal', function (event) {
+
+                var ddlCompanyName = document.getElementById('ContentPlaceHolder1_ddlSearchCompanyName');
+                var CompanyName = ddlCompanyName.options[ddlCompanyName.selectedIndex].text;
+
+                var ddlPayoutDate = document.getElementById('ContentPlaceHolder1_ddlSearchPayoutDate');
+                var PayoutDate = ddlPayoutDate.options[ddlPayoutDate.selectedIndex].text;
+
+                var url = "../Includes/LI/Payment_Find?CompanyName=" + CompanyName + "&PayoutDate=" + PayoutDate + "";
+                $('#ifrm_Adjustment').attr("src", url);
+
+            });
+
+            $('#myModal').on('show.bs.modal', function (event) {
+
+                var ddlCompanyName = document.getElementById('ddlSearchCompanyName');
+                var CompanyName = ddlCompanyName.options[ddlCompanyName.selectedIndex].text;
+
+                var ddlPayoutDate = document.getElementById('ddlSearchPayoutDate');
+                var PayoutDate = ddlPayoutDate.options[ddlPayoutDate.selectedIndex].text;
+
+                var url = "/Includes/LI/Payment_Add?CompanyName=" + CompanyName + "&PayoutDate=" + PayoutDate + "";
+                $('#ifrm_add').attr("src", url);
+
+            });
+
+            $(document).ajaxComplete(function () {
+                $("#spinner").css("display", "none");
+            });
+        });
+
+    </script>
+
+    <style>
+        .modal_Load {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: black;
+            z-index: 99;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+            -moz-opacity: 0.8;
+            min-height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <% include ../partials/header %>
+        <div class="row wrapper border-bottom white-bg page-heading">
+            <div class="col-sm-4">
+                <h2>LI Payment Adjustment Page</h2>
+                <ol class="breadcrumb">
+                    <li>
+                        <a href="index">Dashboard</a>
+                    </li>
+                    <li>LI Directory</li>
+                    <li class="active">
+                        <strong>Payment</strong>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <form runat="server" class="form-horizontal">
+            <div class="row">
+                <div class="col-xs-12">
+
+                    <!-- Adjustment Payment Data -->
+                    <div class="example-modal">
+                        <div class="modal" id="myModal_Find">
+                            <div class="modal-dialog" style="width: 1500px; height: 350px;">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title">Find Policy Number for adjustment</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <iframe id="ifrm_Adjustment" style="border:none; width:100%; height:660px;"></iframe>
+                                    </div>
+                                   
+                                </div>
+                                <!-- /.modal-content -->
+                            </div>
+                            <!-- /.modal-dialog -->
+                        </div>
+                        <!-- /.modal -->
+                    </div>
+                    <!-- /.example-modal -->
+                    <!-- Add Payment Data -->
+                    <div class="example-modal">
+                        <div class="modal" id="myModal">
+                            <div class="modal-dialog modal-lg" role="application">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title">Add new adjustment records</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <iframe id="ifrm_add" style="border:none; width:100%; height:690px"></iframe>
+                                    </div>
+                                 
+                                </div>
+                                <!-- /.modal-content -->
+                            </div>
+                            <!-- /.modal-dialog -->
+                        </div>
+                        <!-- /.modal -->
+                    </div>
+                    <!-- /.example-modal -->
+                    <!-- Edit Payment Data -->
+                    <div class="example-modal">
+                        <div class="modal" id="myModal_edit">
+                            <div class="modal-dialog modal-lg" role="application">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title">Edit adjustment records</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <iframe id="ifrm_update" style="border:none; width:100%; height:660px"></iframe>
+                                    </div>
+                                   
+                                </div>
+                                <!-- /.modal-content -->
+                            </div>
+                            <!-- /.modal-dialog -->
+                        </div>
+                        <!-- /.modal -->
+                    </div>
+                    <!-- /.example-modal -->
+                    <!-- Delete the Upload Statement -->
+                    <div class="example-modal">
+                        <div class="modal border-right" id="myModal_delete">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title">Delete adjustment records</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="box-body">
+                                            <iframe id="ifrm_delete" name="ifrm_update" style="border:none; width:100%; height:115px"></iframe>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.modal-content -->
+                            </div>
+                            <!-- /.modal-dialog -->
+                        </div>
+                        <!-- /.modal -->
+                    </div>
+                    <!-- /.example-modal -->
+
+                    <div class="box">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Filter Option</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <div class="row">
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">Company Name</label>
+                                                <select ID="ddlSearchCompanyName" class="form-control" onchange="ddlCompanyName_SelectedIndexChanged();">
+                                                    <option selected="selected" value="0">--Select--</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">Payout Date</label>
+                                                <select ID="ddlSearchPayoutDate" class="form-control"
+                                                        onchange="ddlSearchPayoutDate_SelectedIndexChanged();" placeholder="Payout Date">
+                                                    <option selected="selected" value="0">--Select--</option>
+
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            &nbsp;
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-2">
+                                                <label class="font-normal">TR Without GST</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                                    <input type="text" ID="txtTotalRevenue" class="form-control"  ReadOnly/>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <label class="font-normal">FAR TR</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                                    <input type="text" ID="txtFARBI" class="form-control"  ReadOnly/>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <label class="font-normal">Adjustment</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                                    <input type="text" ID="txtAdjustmentAmount" class="form-control" ReadOnly/>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-2">
+                                                <label class="font-normal">Total FAR TR</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                                    <input type="text" ID="txtBIPaid" class="form-control" ReadOnly="true"/>
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal_Load" id="spinner">
+                            <div class="spiner-example">
+                                <div class="sk-spinner sk-spinner-wave">
+                                    <div class="sk-rect1"></div>
+                                    <div class="sk-rect2"></div>
+                                    <div class="sk-rect3"></div>
+                                    <div class="sk-rect4"></div>
+                                    <div class="sk-rect5"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <button type="button" class="btn btn-rounded btn-warning" data-toggle="modal" data-target="#myModal_Find" title="Duplicate the records from old payout data" id="btnAdjustment">Adjustment (+/-)</button>
+                                                <button type="button" class="btn btn-rounded btn-success" data-toggle="modal" data-target="#myModal" title="Add New Records in the Adjustment page" id="btnAddNew">Add New</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <div class="table-responsive">
+                                            <table id="PaymentData" class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>FAR Code</th>
+                                                        <th>FAR Name</th>
+                                                        <th>FAR Status</th>
+                                                        <th>Policy Number</th>
+                                                        <th>Client Name</th>
+                                                        <th>Plan Name</th>
+                                                        <th>Commencement Date</th>
+                                                        <th>Premium Mode</th>
+                                                        <th>Premium Paid</th>
+                                                           <th>Total Revenue</th>
+                                                        <th>Bonus</th>
+                                                        <th>Others</th>
+                                                        <th>TR W/O GST</th>
+                                                        <th>GST</th>
+                                                        <th>TR with GST</th>
+                                                        <th>FAR Percentage</th>
+                                                        <th>FARType</th>
+                                                        <th>FARTR</th>
+                                                       
+                                                        <th>Premium Year</th>
+                                                        <th>Revenue Status</th>
+                                                        <th>FAR Verification</th>
+                                                        <th>Policy Verification</th>
+                                                        <th>Admin Remarks</th>
+                                                        <th></th>
+                                                        <th></th>
+                                                       
+                                                    </tr>
+                                                </thead>
+                                                
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+
+
+        <% include ../partials/footer %>
+        <script>
+            $(document).ready(function () {
+
+                $('#PayoutDate .input-group.date').datepicker({
+                    startView: 1,
+                    todayBtn: "linked",
+                    keyboardNavigation: false,
+                    forceParse: false,
+                    autoclose: true,
+                    format: "yyyy-mm-dd"
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>

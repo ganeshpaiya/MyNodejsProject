@@ -1,0 +1,39 @@
+{
+  "name": "commtrack-v2",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "description": "CommtrackV2",
+  "author": {
+    "name": "Ganesh"
+  },
+  "dependencies": {
+    "body-parser": "~1.8.1",
+    "connect-busboy": "0.0.2",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "~1.3.3",
+    "dateformat": "^3.0.3",
+    "debug": "~2.0.0",
+    "deferred": "^0.7.9",
+    "ejs": "^2.5.9",
+    "express": "~4.9.0",
+    "express-myconnection": "^1.0.4",
+    "express-session": "^1.15.6",
+    "formidable": "^1.2.1",
+    "fs": "0.0.1-security",
+    "jade": "~1.6.0",
+    "mime": "^2.3.1",
+    "morgan": "~1.3.0",
+    "multer": "^1.3.0",
+    "multipart": "^0.1.5",
+    "mysql": "^2.15.0",
+    "request": "^2.85.0",
+    "serve-favicon": "~2.1.3",
+    "stylus": "0.42.3",
+    "uuid": "^3.2.1",
+    "xls-to-json-lc": "^0.3.4",
+    "xlsx-to-json-lc": "^0.5.0"
+  }
+}

@@ -1,0 +1,515 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+   <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>FAA | CommTrack</title>
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/font-awesome/css/font-awesome.css" rel="stylesheet"/>
+
+  
+    <link href="/css/style.css" rel="stylesheet"/>
+
+    <link href="/css/plugins/datapicker/datepicker3.css" rel="stylesheet"/>
+
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+	<script type="text/javascript">
+      $(document).ready(function(){
+      var newURL = window.location.pathname;
+     // LoadHeader();
+      LoadManual_Data();
+     });
+   </script>
+	 <script type="text/javascript">
+   function LoadManual_Data() {
+    $.ajax(
+    {
+        type: "GET",
+        url: "/Includes/LI/Manual_Edit/GetManualData",
+        data: '',
+        dataType: "json",
+        success:function(result){
+
+		 $.each(result, function(i,item){
+           
+            
+			  $("#txtClientName").val(item.ClientName);
+			  $("#txtPlanName").val(item.PlanName);
+			  $("#txtPolicyNumber").val(item.PolicyNumber);
+			  $("#txtCommencementDate").val(item.CommencementDate);
+			  $("#ddlPremiumMode").val(item.Frequency);
+			  $("#txtPremiumPaid").val(item.PremiumPaid);
+			  $("#ddlFARType").val(item.ClientName);
+			 // $("#txtFARPercentage").val(item.PlanName);
+			  $("#txtPolicyNumber").val(item.PolicyNumber);
+			  $("#txtCommencementDate").val(item.CommencementDate);
+			  $("#ddlPremiumMode").val(item.PremiumMode);
+			  $("#txtTotalRevenue").val(item.TotalRevenue);
+			  $("#txtbonus").val(item.Bonus);
+			  $("#txtOthers").val(item.Others);
+			  $("#txtTRWithoutGST").val(item.TRWithGST);
+			  $("#txtGST").val(item.GSTAmount);
+			  $("#txtTRwithGST").val(item.TRWithGST);
+			  $("#txtFARBI").val(item.FARBI);
+			  $("#txtPremiumYear").val(item.PolicyYear);
+			  $("#ddlRevenueStatus").val(item.RevenueStatus);
+			 $("#txtAdminRemarks").val(item.AdminRemarks);
+			 
+                   // var id = result[i]['FACode'];
+                   // var name = result[i]['FARName'];
+                    
+                   // $("#ddlFARName").append("<option value='"+id+"'>"+name+"</option>");
+          });
+						   
+                     for( var i = 0; i<len; i++){
+                     var id = result[i]['FARCode'];
+					 var name = rows[i]['FARName'];
+                    $("#ddlFARName").append("<option value='"+id+"'>"+name+"</option>");
+
+                }
+            }
+    });
+
+   }
+     </script>
+	<script type="text/javascript">
+        function startCalc() {
+            var sta=false;
+            var FARPercentage = document.getElementById("txtFARPercentage").value;
+            var TR = document.getElementById("txtTotalRevenue").value;
+            var GST = document.getElementById("txtGST").value;
+            var Bonus = document.getElementById("txtbonus").value;
+            var Others = document.getElementById("txtOthers").value;
+            //alert("Hi");
+            if (TR != "") {
+                if (FARPercentage != "") {
+                  
+                   // var FARBI = (parseFloat(TR));
+                    if (Bonus != "" && Others != "") {
+                        var txtTRWoutGST = +Bonus + +TR + +Others ;
+                        //var txtTRWoutGSTO = +Others + +txtTRWoutGSTB;
+                       // var txtTRWoutGST = +txtTRWoutGSTB + +txtTRWoutGSTO;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else if (Others != "" && Bonus == "" ) 
+                    {
+                        var txtTRWoutGST = +Others + +TR;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else if (Others == "" && Bonus != "") {
+                        var txtTRWoutGST = +Bonus + +TR;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else {
+                        txtTRWithoutGST.value = "" + parseFloat(TR).toFixed(2) + "";
+                    }
+                   
+                   var FARBI = ((parseFloat(txtTRWithoutGST.value)) * (parseFloat(FARPercentage) / 100));
+                    var txtFARBI = document.getElementById("txtFARBI");
+                    txtFARBI.value = "" + parseFloat(FARBI).toFixed(2) + "";
+
+                }
+                else {
+                    var FARBI = (parseFloat(txtTRWithoutGST.value));
+                    var txtFARBI = document.getElementById("txtFARBI");
+                    txtFARBI.value = "" + parseFloat(FARBI).toFixed(2) + "";
+                }
+            }
+            else {
+                //alert("Please keying the Total Revenue");
+                //document.getElementById("txtTotalRevenue").focus();
+
+            }
+            if (GST != "")
+            {
+                var TRWithGST = +GST + +txtTRWithoutGST.value;
+
+                txtTRwithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+            }
+            else
+            {
+                var TRWithGST = +GST + +txtTRWithoutGST.value;
+
+                txtTRwithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+            }
+            
+        }
+    </script>
+</head>
+<body class="row wrapper  white-bg page-heading">
+     <form id="form1" runat="server">
+	 <input id="hf_UploadUniqueID" type="hidden" name="hf_UploadUniqueID">
+    <input id="hf_UploadID" type="hidden" name="hf_UploadID">
+     <input ID="hf_PayoutID" type="hidden" name="hf_PayoutID" />
+    <input ID="hf_ImportedID" type="hidden" name="hf_ImportedID"/>
+    <input ID="hf_UniqueID" type="hidden" name="hf_UniqueID"/>
+    <input ID="hf_UploadID" type="hidden" name="hf_UploadID"/>
+    <input ID="hf_PolicyNumber" type="hidden" name="hf_PolicyNumber"/>
+    <input ID="hf_CompanyName" type="hidden" name="hf_CompanyName"/>
+    <input ID="hf_StatementDate" type="hidden" name="hf_StatementDate"/>
+    <input ID="hf_TotalRevenue" type="hidden" name="hf_TotalRevenue"/>
+    <input ID="hf_FARPercentage" type="hidden" name="hf_FARPercentage"/>
+    <div class="row">
+    <div class="col-lg-6">
+    <div class="ibox">
+    <div class="ibox-content">
+    <div class="row">
+                
+    <div class="col-lg-3">
+    <div class="form-group" id="FARName">
+    <label class="font-normal">FAR Name</label>
+    <select name="ddlFARName" id="ddlFARName" class="form-control" placeholder="FAR Name">
+	<option selected="selected" value="--Select--">Select</option>
+	<option value="F10002">Au Kim Yoong _ [F10002] _ (Terminated)</option>
+	<option value="00092">Aziz Zafran Bin Jamalul Karib _ [00092] _ (Active)</option>
+	<option value="F10012">Beh Kok Wu _ [F10012] _ (Terminated)</option>
+	<option value="00005">Chai Peng Set _ [00005] _ (Active)</option>
+	<option value="00010">Chai Wen Lee _ [00010] _ (Terminated)</option>
+	<option value="00041">Chang Wai Kuan _ [00041] _ (Terminated)</option>
+	<option value="00029">Cheah Swee Ngee _ [00029] _ (Active)</option>
+	<option value="00057">Cheah Yee Nin _ [00057] _ (Active)</option>
+	<option value="00096">Cheak Ching Yong _ [00096] _ (Active)</option>
+	<option value="00053">Chen Seok Kuan _ [00053] _ (Active)</option>
+	<option value="00013">Chen Yok Ching _ [00013] _ (Terminated)</option>
+	<option value="00106">Cheng Chuen Jin _ [00106] _ (Active)</option>
+	<option value="00028">Cheong Wai Fun _ [00028] _ (Active)</option>
+	<option value="F10004">Chew Ai Ling _ [F10004] _ (Terminated)</option>
+	<option value="00093">Chew Jun Yen _ [00093] _ (Active)</option>
+	<option value="00004">Chin Hooi khoon _ [00004] _ (Terminated)</option>
+	<option value="00046">Chong Kaw Keong _ [00046] _ (Terminated)</option>
+	<option value="00097">Chong Yvonne _ [00097] _ (Active)</option>
+	<option value="00021">Choong Kim Meng _ [00021] _ (Terminated)</option>
+	<option value="00068">Chua Peng Huan _ [00068] _ (Active)</option>
+	<option value="00015">Chua Poh Eng _ [00015] _ (Terminated)</option>
+	<option value="00089">Chua Pueh Yii _ [00089] _ (Active)</option>
+	<option value="00100">Clarence Lim Kar Hui _ [00100] _ (Active)</option>
+	<option value="00000">FA Advisory Sdn Bhd _ [00000] _ (Active)</option>
+	<option value="00000A">Financial Alliance Pte Ltd _ [00000A] _ (Active)</option>
+	<option value="00019">Fu Hwa Meng @ Henry Fu Hwa Meng _ [00019] _ (Terminated)</option>
+	<option value="00003">Geok Saw Khim _ [00003] _ (Active)</option>
+	<option value="00044">Goh Lian Nee _ [00044] _ (Active)</option>
+	<option value="00108">Hee Way Kuang _ [00108] _ (Active)</option>
+	<option value="00009">Helen Poh Gaik Cheng _ [00009] _ (Terminated)</option>
+	<option value="00002">Ho Siew Loon _ [00002] _ (Active)</option>
+	<option value="00017">Hon Seong Kong _ [00017] _ (Active)</option>
+	<option value="00072">Jonathan Thong Jia Ren _ [00072] _ (Terminated)</option>
+	<option value="00012">Kan Soon Cheong _ [00012] _ (Terminated)</option>
+	<option value="00014">Karen Foo @ Foo Yoon Chew  _ [00014] _ (Terminated)</option>
+	<option value="00037">Khaw Geok Bee _ [00037] _ (Active)</option>
+	<option value="00043">Khoo Eng Ngo _ [00043] _ (Active)</option>
+	<option value="F10007">Lai Yong Kong _ [F10007] _ (Terminated)</option>
+	<option value="00078">Lam Lai Khuan _ [00078] _ (Active)</option>
+	<option value="00080">Law Kok Wai _ [00080] _ (Terminated)</option>
+	<option value="00084">Law Yeen Nee _ [00084] _ (Active)</option>
+	<option value="00086">Leang Siew Yen _ [00086] _ (Terminated)</option>
+	<option value="00077">Lee Eng Tee  _ [00077] _ (Active)</option>
+	<option value="00034">Lee Lee Chin _ [00034] _ (Active)</option>
+	<option value="00070">Lee Mei Leng _ [00070] _ (Terminated)</option>
+	<option value="00022">Lee Tuck Wai _ [00022] _ (Terminated)</option>
+	<option value="00071">Lee Wai Leong _ [00071] _ (Terminated)</option>
+	<option value="00107">Lee Wai Ming _ [00107] _ (Active)</option>
+	<option value="00050">Leow Kim Meng _ [00050] _ (Active)</option>
+	<option value="00052">Lew Hon Yih _ [00052] _ (Terminated)</option>
+	<option value="00063">Lew Lai Wan _ [00063] _ (Terminated)</option>
+	<option value="00023">Liau Chee Hui _ [00023] _ (Active)</option>
+	<option value="00069">Liew Yeong Lun _ [00069] _ (Active)</option>
+	<option value="00038">Lim Chooi Guek _ [00038] _ (Active)</option>
+	<option value="00101">Lim Jarn Jiang _ [00101] _ (Active)</option>
+	<option value="00047">Lim Pei Sze _ [00047] _ (Active)</option>
+	<option value="00054">Lim Seok Eang _ [00054] _ (Active)</option>
+	<option value="00090">Lim Yeng Peng _ [00090] _ (Terminated)</option>
+	<option value="00061">Ling Peng Min _ [00061] _ (Active)</option>
+	<option value="00085">Loh Wei Chong _ [00085] _ (Active)</option>
+	<option value="00098">Loo Saw Hua _ [00098] _ (Active)</option>
+	<option value="00056">Loo Wing Wai _ [00056] _ (Active)</option>
+	<option value="00031">Looi Kon Ying _ [00031] _ (Active)</option>
+	<option value="00105">Loong Wai Foong _ [00105] _ (Active)</option>
+	<option value="00049">Low Siew Fong _ [00049] _ (Active)</option>
+	<option value="00065">Lum Sau Kuan _ [00065] _ (Active)</option>
+	<option value="00064">Lye Mun Yee _ [00064] _ (Active)</option>
+	<option value="00099">Ma Teck Hoe _ [00099] _ (Active)</option>
+	<option value="00103">Mohamad Aidil Redza Bin Mohd Khir _ [00103] _ (Active)</option>
+	<option value="00102">Mohd Hasan Bin Mohd Amini _ [00102] _ (Active)</option>
+	<option value="00042">Mun Yoke Wan _ [00042] _ (Terminated)</option>
+	<option value="00073">Ng Chee Kong _ [00073] _ (Active)</option>
+	<option value="00094">Ng Kok Wah _ [00094] _ (Active)</option>
+	<option value="00016">Ng Lee Koon _ [00016] _ (Active)</option>
+	<option value="00039">Ng Siew Fak _ [00039] _ (Active)</option>
+	<option value="00082">Nur Farah Adira Binti Ambok Suloh _ [00082] _ (Active)</option>
+	<option value="00062">Ong Kam Khow _ [00062] _ (Active)</option>
+	<option value="00011">Ong Lee Lan _ [00011] _ (Terminated)</option>
+	<option value="00051">Ong Say Seng _ [00051] _ (Terminated)</option>
+	<option value="00081">Ooi Bet Tee _ [00081] _ (Active)</option>
+	<option value="00006">Ooi Hooi Fong _ [00006] _ (Active)</option>
+	<option value="00059">Ooi Sau Mei _ [00059] _ (Active)</option>
+	<option value="00033">Ooi Sen Tee _ [00033] _ (Terminated)</option>
+	<option value="00035">Sia Han Way _ [00035] _ (Active)</option>
+	<option value="00008">Sia Kwong Ger _ [00008] _ (Terminated)</option>
+	<option value="00088">Sim Ee Chen _ [00088] _ (Terminated)</option>
+	<option value="00045">Sin Foong Kuan _ [00045] _ (Terminated)</option>
+	<option value="00018">Soo Bee Choo _ [00018] _ (Active)</option>
+	<option value="00067">Sylvia Martin _ [00067] _ (Active)</option>
+	<option value="00001">Tan Ai Chin _ [00001] _ (Active)</option>
+	<option value="00066">Tan Chee Eng _ [00066] _ (Active)</option>
+	<option value="00095">Tan Choon Xin _ [00095] _ (Active)</option>
+	<option value="00007">Tan Goon Luan _ [00007] _ (Active)</option>
+	<option value="00079">Tan Hui Nee _ [00079] _ (Active)</option>
+	<option value="00020">Tan See Chui _ [00020] _ (Active)</option>
+	<option value="00040">Tan Yik Loon _ [00040] _ (Active)</option>
+	<option value="00060">Teh Tiong Keng _ [00060] _ (Terminated)</option>
+	<option value="00024">Tengku Rozani Binti Tengku Ahmad Nerang _ [00024] _ (Active)</option>
+	<option value="00030">Teoh Choon Meng _ [00030] _ (Terminated)</option>
+	<option value="00091">Test Shanmugam _ [00091] _ (Active)</option>
+	<option value="00036">Tio Sheng Chiat _ [00036] _ (Active)</option>
+	<option value="00104">Ummu Habeebah Binti Zakaria _ [00104] _ (Active)</option>
+	<option value="00026">Wong Chiok Yieng _ [00026] _ (Terminated)</option>
+	<option value="00076">Wong Jun Yong _ [00076] _ (Active)</option>
+	<option value="00083">Wong Mun Long _ [00083] _ (Active)</option>
+	<option value="00075">Wong Pei Sun _ [00075] _ (Active)</option>
+	<option value="00048">Wong Sai Yee _ [00048] _ (Active)</option>
+	<option value="00074">Woon Wai Min _ [00074] _ (Active)</option>
+	<option value="00087">Yeap Saw Geen _ [00087] _ (Active)</option>
+	<option value="00025">Yew Kok Beng _ [00025] _ (Terminated)</option>
+	<option value="00055">Yong Hiew Leng _ [00055] _ (Active)</option>
+	<option value="00058">Yong Tet Soon _ [00058] _ (Terminated)</option>
+	<option value="00027">Zeng Zi-Hao _ [00027] _ (Active)</option>
+
+</select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group" id="ClientName">
+                                <label class="font-normal">Client Name</label>
+                               <input name="txtClientName" type="text" id="txtClientName" class="form-control" placeholder="Client Name">
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group" id="PlanName">
+                                <label class="font-normal">Plan Name</label>
+                                <input name="txtPlanName" type="text" id="txtPlanName" class="form-control" placeholder="Plan Name"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group" id="PolicyNumber">
+                                <label class="font-normal">Policy Number</label>
+                                <input name="txtPolicyNumber" type="text" id="txtPolicyNumber" class="form-control" placeholder="Policy Number">
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group" id="CommencementDate">
+                                <label class="font-normal">Commencement Date</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                   <input name="txtCommencementDate" type="text" id="txtCommencementDate" class="form-control" placeholder="Commencement Date">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group" id="PremiumMode">
+                                <label class="font-normal">Premium Mode</label>
+                                <select name="ddlPremiumMode" id="ddlPremiumMode" class="form-control" placeholder="Premium Mode">
+							<option value=""></option>
+							<option value="Y">Y</option>
+							<option value="H">H</option>
+							<option value="Q">Q</option>
+							<option value="M">M</option>
+							<option value="S">S</option>
+
+						</select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group" id="PremiumPaid">
+                                <label class="font-normal">Premium Paid</label>
+                                <div class="input-group date">
+                                    <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                   <input name="txtPremiumPaid" type="text" id="txtPremiumPaid" class="form-control" placeholder="Premium Paid"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="row">
+                        <div class="col-lg-1">
+                                </div>
+                                 <div class="col-lg-3">
+                            <div class="form-group" id="FARType">
+                                <label class="font-normal">FAR Type</label>
+                               <select name="ddlFARType" id="ddlFARType" class="form-control" placeholder="FAR Type">
+								<option value="Select">Select</option>
+								<option value="Servicing FAR">Servicing FAR</option>
+								<option value="Jointwork">Jointwork</option>
+								<option value="Vesting">Vesting</option>
+
+							</select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group" id="FARPercentage">
+                                <label class="font-normal">FAR Percentage</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon"><i>%</i></div>
+                                   <input name="txtFARPercentage" type="text" id="txtFARPercentage" class="form-control" onchange="startCalc();" placeholder="FAR Percentage"/>
+                                </div>
+                            </div>
+                        </div>
+                          <div class="col-lg-3">
+                            <div class="form-group" id="TotalRevenue">
+                                <label class="font-normal">Total Revenue</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                   <input name="txtTotalRevenue" type="text" id="txtTotalRevenue" class="form-control" onchange="startCalc();" placeholder="Total Revenue"/>
+                                </div>
+                            </div>
+                              </div>
+                        </div>
+               
+                    <div class="row">
+                          <div class="col-lg-3">
+                            <div class="form-group" id="FARBonus">
+                                <label class="font-normal">Bonus</label>
+                                <div class="input-group">
+                                  <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                    <input name="txtbonus" type="text" id="txtbonus" class="form-control" onchange="startCalc();" placeholder="Bonus"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group" id="FAROthers">
+                                <label class="font-normal">Others</label>
+                                <div class="input-group">
+                                  <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                    <input name="txtOthers" type="text" id="txtOthers" class="form-control" onchange="startCalc();" placeholder="Others"/>
+                                </div>
+                            </div>
+                        </div>
+                    
+                   
+                        <div class="col-lg-3">
+                            <div class="form-group" id="TR W/O GST">
+                                <label class="font-normal">TR W/O GST</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                   <input name="txtTRWithoutGST" type="text" id="txtTRWithoutGST" class="form-control" onchange="startCalc();" placeholder="TR W/O GST"/>
+                                </div>
+                            </div>
+                        </div>
+                         <div class="col-lg-3">
+                        <div class="form-group" id="GST">
+                        <label class="font-normal">GST</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input name="txtGST" type="text" id="txtGST" class="form-control" onchange="startCalc();" placeholder="GST"/>
+                        </div>
+                    </div>
+                             </div>
+                          <div class="col-lg-3">
+                            <div class="form-group" id="Total Revenue with GST">
+                                <label class="font-normal">TR with GST</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                   <input name="txtTRwithGST" type="text" id="txtTRwithGST" class="form-control" placeholder="Total Revenue with GST"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group" id="FAR BI">
+                                <label class="font-normal">FAR TR</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                   <input name="txtFARBI" type="text" id="txtFARBI" class="form-control" placeholder="FAR TR"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group" id="PremiumYear">
+                                <label class="font-normal">Premium Year</label>
+                                <div class="input-group">
+                                    <div class="input-group-addon"></div>
+                                   <input name="txtPremiumYear" type="text" id="txtPremiumYear" class="form-control" placeholder="Premium Year"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group" id="RevenueStatus">
+                                <label class="font-normal">Revenue Status</label>
+                                <select name="ddlRevenueStatus" id="ddlRevenueStatus" class="form-control" placeholder="Revenue Status">
+								<option value=""></option>
+								<option value="NTR">NTR</option>
+								<option value="RTR">RTR</option>
+								<option value="SNTR">SNTR</option>
+								<option value="SRTR">SRTR</option>
+
+							</select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group" id="AdminRemarks">
+                                <label class="font-normal">Admin Remarks</label>
+                               <input name="txtAdminRemarks" type="text" id="txtAdminRemarks" class="form-control" placeholder="Admin Remarks">
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            
+                        </div>
+                    </div>
+                </div>
+               <div class="ibox-footer">
+                    <input type="Button" name="btnCancel" value="Cancel" id="btnCancel" class="btn btn-default pull-left">
+                    <input type="Button" name="btnSaveData" value="Save a Record" id="btnSaveData" class="btn btn-success pull-right">
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    </form>
+
+    <!-- Mainly scripts -->
+    <script src="/js/jquery-2.1.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+   
+    <script src="/js/inspinia.js"></script>
+   
+
+    <!-- Data picker -->
+   <script src="/js/plugins/datapicker/bootstrap-datepicker.js"></script>
+   <script>
+        $(document).ready(function () {
+            $('#CommencementDate .input-group.date').datepicker({
+                startView: 1,
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: "yyyy-mm-dd"
+            });
+
+            $('#CommencementDate .input-group.date').datepicker({
+                startView: 1,
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: "yyyy-mm-dd"
+            });
+        });
+    </script>
+ 
+
+</body>
+</html>

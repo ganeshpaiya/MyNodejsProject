@@ -1,0 +1,110 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_LI_validate_excelsheet`( P_UploadUniqueID NVARCHAR(250), p_CompanyName NVARCHAR(250), p_CommissionType NVARCHAR(50), p_StatementDate DATETIME(3))
+BEGIN
+         DECLARE v_ifcheck NVARCHAR(250);   
+        DECLARE v_PolicyYear INT;
+		
+		DECLARE v_TotalNo_Query INT;
+		
+		DECLARE v_IncrementNo INT;
+		DECLARE v_TotalRecords INT;
+		
+		DECLARE v_PolicyNumber NVARCHAR(150);
+		DECLARE v_AgentCode NVARCHAR(50);
+		DECLARE v_FARCode NVARCHAR(50);
+		DECLARE v_IncrementNo_iBOSS INT;
+		DECLARE v_TotalRecords_iBOSS INT;
+		
+		DECLARE v_RevenueStatus NCHAR(50);
+	 	-- Convert All Null Filelds to 0.00
+		BEGIN
+			BEGIN 
+			update `li_tempcommissiondata` set Bonus=0.00 where Bonus='' And UploadUniqueID=p_UploadUniqueID;
+		    update `li_tempcommissiondata` set TRWithGST=0.00 where TRWithGST='' And UploadUniqueID=p_UploadUniqueID;
+			update `li_tempcommissiondata` set PremiumPaid=0.00 where PremiumPaid='' And UploadUniqueID=p_UploadUniqueID;
+            update `li_tempcommissiondata` set TotalRevenue=0.00 where TotalRevenue='' And UploadUniqueID=p_UploadUniqueID;
+			update `li_tempcommissiondata` set GSTAmount=0.00 where GSTAmount='' And UploadUniqueID=p_UploadUniqueID;
+			update `li_tempcommissiondata` set Others=0.00 where Others='' And UploadUniqueID=p_UploadUniqueID;
+            UPDATE `li_tempcommissiondata` SET CommencementDate =null WHERE CommencementDate = '' And UploadUniqueID=p_UploadUniqueID;
+			UPDATE `li_tempcommissiondata` SET Status =0  where  UploadUniqueID=p_UploadUniqueID;
+			
+			END; 
+		
+		End; 
+		-- End 
+		-- Replace to '(' to '-' and ')' to empty
+		BEGIN
+			BEGIN 
+			UPDATE `li_tempcommissiondata` SET  Bonus =RTRIM(LTRIM(REPLACE(REPLACE(REPLACE(Bonus,' ',''),'(','-'),')',''))) , Others = RTRIM(LTRIM(REPLACE(REPLACE(REPLACE(Others,' ',''),'(','-'),')',''))),PremiumPaid =RTRIM(LTRIM(REPLACE(REPLACE(REPLACE(PremiumPaid,' ',''),'(','-'),')',''))), TotalRevenue =RTRIM(LTRIM(REPLACE(REPLACE(REPLACE(TotalRevenue,' ',''),'(','-'),')',''))),GSTAmount =RTRIM(LTRIM(REPLACE(REPLACE(REPLACE(GSTAmount,' ',''),'(','-'),')',''))),TRWithGST =RTRIM(LTRIM(REPLACE(REPLACE(REPLACE(TRWithGST,' ',''),'(','-'),')',''))) WHERE  UploadUniqueID=p_UploadUniqueID;
+			END; 
+		
+		END;
+		-- End Replace	
+		-- Check And Update status 
+		
+			
+		-- End Replace	
+
+		-- LI_TempCommissionData table insert into LI_TempData
+		
+			BEGIN 
+			SET v_ifcheck='';
+			SET v_ifcheck=(select COUNT(*) from li_tempcommissiondata where Status=1 AND UploadUniqueID =p_UploadUniqueID);
+		     if  v_ifcheck =0 
+			 THEN
+			 INSERT INTO Transaction_LI_TempData(`UploadUniqueID`,`FARCode`,`RepCode`,`FARName`,`PolicyNumber`,`ClientName`,`PlanName`,`CommencementDate`,`PremiumMode`,`PremiumPaid`,`TotalRevenue`,`GSTAmount`,`Bonus`,`Others`,`TRwithGST`, `TRwithoutGST`, `InsurerName`,`UploadedOn`)
+				select UploadUniqueID,FARcode,Repcode,FARName,PolicyNumber,ClientName,PlanName, DATE_FORMAT(CommencementDate, '%Y-%m-%d'),PremiumMode,
+                IFNULL(CONVERT(PremiumPaid,DECIMAL(8,2)),0),IFNULL(CONVERT(TotalRevenue,DECIMAL(8,2)),0),IFNULL(CONVERT(GSTAmount,DECIMAL(8,2)),0),IFNULL(CONVERT(Bonus,DECIMAL(8,2)),0),IFNULL(CONVERT(Others,DECIMAL(8,2)),0),
+                (IFNULL(CONVERT(TotalRevenue,DECIMAL(8,2)),0) + IFNULL(CONVERT(GSTAmount,DECIMAL(8,2)),0) + IFNULL(CONVERT(Bonus,DECIMAL(8,2)),0) + IFNULL(CONVERT(Others,DECIMAL(8,2)),0)) As TR_with_GST,
+				(IFNULL(CONVERT(TotalRevenue,DECIMAL(8,2)),0) + IFNULL(CONVERT(Bonus,DECIMAL(8,2)),0) + IFNULL(CONVERT(Others,DECIMAL(8,2)),0)) As TR_without_GST,
+				(Select Distinct InsurerName From Master_LI_UploadData WHERE UniqueID =p_UploadUniqueID AND StatementDate = p_StatementDate AND CommType = p_CommissionType), NOW()
+				from LI_TempCommissionData where PolicyNumber is not null   AND  UploadUniqueID  IN (Select UniqueID From Master_LI_UploadData WHERE UniqueID =p_UploadUniqueID AND StatementDate =p_StatementDate AND CommType =p_CommissionType);
+			  # CALL `sp_LI_VerifingProcess`(p_UploadUniqueID,p_CompanyName,convert(p_StatementDate,datetime) );
+			 #UploadUniqueID =P_UploadUniqueID
+			 else 
+			   DELETE FROM  `Master_LI_UploadData`  where UniqueID=p_UploadUniqueID;
+			  END IF;
+			 
+		END; 
+	
+		BEGIN  -- [Start] Insert into [Transaction].[LI_ImportedData] From [Transaction].[LI_TempData]
+
+			Insert Transaction_LI_ImportedData(UniqueID,UploadUniqueID,InsAgentCode,FARCode,FARName,PolicyNumber,ClientName,PlanName, CommencementDate,TotalRevenue,GSTAmount,PremiumMode,PremiumPaid,Bonus,Others,TRWithGST,TRWithoutGST, Received, Deleted,InsurerName) 
+			Select UUID(), `UploadUniqueID`,`RepCode`,`FARCode`,`FARName`,`PolicyNumber`,`ClientName`,`PlanName`,`CommencementDate`,`TotalRevenue`,`GSTAmount`,`PremiumMode`,`PremiumPaid`,`Bonus`,`Others`,`TRwithGST`,`TRwithoutGST`,'0','0', p_CompanyName  
+			From Transaction_LI_TempData WHERE UploadUniqueID = p_UploadUniqueID;
+			
+
+			
+
+
+			SET v_TotalNo_Query = 0;
+			SET v_TotalNo_Query = (Select COUNT(*) As TotalTranNo From `Transaction_LI_Importeddata` Where UploadUniqueID = p_UploadUniqueID);
+			UPDATE `Master_LI_UploadData` SET TotalTransNo = v_TotalNo_Query WHERE UniqueID = p_UploadUniqueID;
+
+			SET v_TotalNo_Query = 0;
+			SET v_TotalNo_Query = (Select COUNT(*) As TotalPendingNo From `Transaction_LI_Importeddata` Where UploadUniqueID = p_UploadUniqueID AND Received = 0);
+			UPDATE  `Master_LI_UploadData` SET PendingTransNo = v_TotalNo_Query WHERE UniqueID = p_UploadUniqueID;
+
+			SET v_TotalNo_Query = 0;
+			SET v_TotalNo_Query = (Select COUNT(*) As TotalPendingNo From `Transaction_LI_Importeddata` Where UploadUniqueID = p_UploadUniqueID AND Received = 0);
+			UPDATE  `Master_LI_UploadData` SET PendingTransNo = v_TotalNo_Query WHERE UniqueID = p_UploadUniqueID;
+				
+			SET v_TotalNo_Query = 0;
+			SET v_TotalNo_Query = (Select COUNT(*) As ReceivedTransNo From `Transaction_LI_Importeddata` Where UploadUniqueID = p_UploadUniqueID AND Received = 0);
+			UPDATE  `Master_LI_UploadData` SET ReceivedTransNo = v_TotalNo_Query WHERE UniqueID = p_UploadUniqueID;
+
+			SET v_TotalNo_Query = 0;
+			#SET v_TotalNo_Query = (Select COUNT(*) As ReceivedTransNo From `LI_ImportedData` Where UploadUniqueID = p_UploadUniqueID AND PayoutStatus = 0);
+			#UPDATE  `li_uploaddata1` SET PayoutTransNo = v_TotalNo_Query WHERE UniqueID = p_UploadUniqueID;
+				
+			INSERT INTO  successlog (`UniqueID`,`UploadUniqueID`,`InsurerName`,`FileName`,`UserSuccessMessage`,`SysMessage`,`CreatedDate`)
+			VALUES (UUID(), p_UploadUniqueID,p_CompanyName, '','Finished the Import Table ','3', NOW());
+				
+			SET v_TotalNo_Query = 0;
+			#SET v_TotalNo_Query = (Select COUNT(*) As PaidTransNo From `LI_PayoutData` Where UploadUniqueID = p_UploadUniqueID AND PayoutStatus = 1);
+			#UPDATE  `li_uploaddata1` SET PaidTransNo = v_TotalNo_Query WHERE UniqueID = p_UploadUniqueID;
+
+			INSERT INTO  successlog (`UniqueID`,`UploadUniqueID`,`InsurerName`,`FileName`,`UserSuccessMessage`,`SysMessage`,`CreatedDate`)
+			VALUES (UUID(), p_UploadUniqueID, p_CompanyName, '','Finished the Import Table ','success', NOW());
+            
+            End;
+            End

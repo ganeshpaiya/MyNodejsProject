@@ -1,0 +1,395 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <% include ../partials/head %>
+
+    <script type="text/javascript">
+        function Load_GetLICommpanyName() {
+
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/CommonScript/GetLICommpanyName",
+                data: "",
+                success: function (results) {
+                    $('#ddlSearchCompanyName').empty();
+                    $("#ddlSearchCompanyName").append("<option value=Select>--Select--</option>");
+                    var len = results.length;
+                    for (var i = 0; i < len; i++) {
+                        var id = results[i]['InsuranceBrokerID'];
+                        var name = results[i]['BrokerName'];
+                        $("#ddlSearchCompanyName").append("<option value='" + id + "'>" + name + "</option>");
+
+                    }
+
+                }
+
+            });
+        }
+        function ddlCompanyName_SelectedIndexChanged() {
+            var CommType = $('#ddlSearchCompanyName option:selected').text();
+            var parameters = { CommType: CommType };
+            JSON.stringify(CommType);
+            $.ajax({
+                type: "get",
+                dataType: "json",
+                url: "/CommonScript/GetLICommType",
+                data: parameters,
+                success: function (results) {
+                    $('#ddlSearchCommType').empty();
+                    $("#ddlSearchCommType").append("<option value=Select>--Select--</option>");
+                    var len = results.length;
+                    for (var i = 0; i < len; i++) {
+                        var CommType = results[i]['CommType'];
+                        $("#ddlSearchCommType").append("<option value='" + CommType + "'>" + CommType + "</option>");
+                    }
+                }
+
+            });
+        }
+        function ddlSearchCommType_SelectedIndexChanged() {
+            var CommType = $('#ddlSearchCommType option:selected').text();
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var parameters = { CommType: CommType, CompanyName: CompanyName };
+            JSON.stringify(parameters);
+            $.ajax({
+                type: "get",
+                dataType: "json",
+                url: "/CommonScript/GetLIStatementDate",
+                data: parameters,
+                success: function (results) {
+                    $('#ddlSearchStatementDate').empty();
+                    $("#ddlSearchStatementDate").append("<option value=Select>--Select--</option>");
+                    var len = results.length;
+                    for (var i = 0; i < len; i++) {
+                        var StatementDate = results[i]['StatementDate'];
+                        $("#ddlSearchStatementDate").append("<option value='" + StatementDate + "'>" + StatementDate + "</option>");
+                    }
+
+                }
+
+            });
+
+
+        }
+        function ddlSearchStatementDate_SelectedIndexChanged() {
+
+            GetKeyinTotalRevenue();
+            GetTotalRevenue();
+            GetReceivedTR();
+            Load_ReceivedData();
+        }
+        function GetKeyinTotalRevenue() {
+            var CommType = $('#ddlSearchCommType option:selected').text();
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var StatementDate = $('#ddlSearchStatementDate option:selected').text();
+            var parameters = { CommType: CommType, CompanyName: CompanyName, StatementDate: StatementDate };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/CommonScript/GetKeyinTotalRevenue",
+                data: parameters,
+                success: function (result) {
+                    $.each(result, function (i, item) {
+                        $("#txtKeyinTotalRevenue").val(item.KeyinTotalRevenue);
+                    });
+                }
+            });
+        }
+        function GetTotalRevenue() {
+            var CommType = $('#ddlSearchCommType option:selected').text();
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var StatementDate = $('#ddlSearchStatementDate option:selected').text();
+            var parameters = { CommType: CommType, CompanyName: CompanyName, StatementDate: StatementDate };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/CommonScript/GetTotalRevenue",
+                data: parameters,
+
+                success: function (result) {
+                    $.each(result, function (i, item) {
+                        $("#txtTotalRevenue").val(item.TotalRevenue);
+                    });
+                }
+            });
+        }
+        function GetReceivedTR() {
+            var CommType = $('#ddlSearchCommType option:selected').text();
+            var CompanyName = $('#ddlSearchCompanyName option:selected').text();
+            var StatementDate = $('#ddlSearchStatementDate option:selected').text();
+            var parameters = { CommType: CommType, CompanyName: CompanyName, StatementDate: StatementDate };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/CommonScript/GetReceivedTR",
+                data: parameters,
+                success: function (data) {
+
+                }
+            });
+        }
+        function Load_ReceivedData() {
+
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                url: "/LI/Received/GetReceivedData",
+                data: {
+
+                    CompanyName: $('#ddlSearchCompanyName option:selected').text(),
+                    CommType: $('#ddlSearchCommType option:selected').text(),
+                    StatementDate: $('#ddlSearchStatementDate option:selected').text()
+
+                },
+                success: function (data) {
+                    var datatableVariable = $('#ReceivedTR').DataTable({
+                        data: data,
+                        columns: [
+
+                            { 'data': 'FARCode' },
+                            { 'data': 'FARName' },
+                            { 'data': 'PolicyNumber' },
+                            { 'data': 'ClientName' },
+                            { 'data': 'PlanName' },
+                            { 'data': 'PremiumMode' },
+                            { 'data': 'PremiumPaid', 'render': function (PremiumPaid) { return '$ ' + PremiumPaid; } },
+                            { 'data': 'TotalRevenue', 'render': function (TotalRevenue) { return '$ ' + TotalRevenue; } },
+                            { 'data': 'Bonus', 'render': function (Bonus) { return '$ ' + Bonus; } },
+                            { 'data': 'Others', 'render': function (Others) { return '$ ' + Others; } },
+                            { 'data': 'TRWithoutGST', 'render': function (TRWithoutGST) { return '$ ' + TRWithoutGST; } },
+                            { 'data': 'GSTAmount', 'render': function (GSTAmount) { return '$ ' + GSTAmount; } },
+                            { 'data': 'TRWithGST', 'render': function (TRWithGST) { return '$ ' + TRWithGST; } },
+                        ],
+                        stateSave: true,
+                        //responsive: true,
+                        "dom": 'T<"clear">lfrtip',
+                        "tableTools": {
+                            "sSwfPath": "/js/plugins/dataTables/swf/copy_csv_xls_pdf.swf"
+                        },
+
+                        columnDefs: [{
+                            orderable: false,
+                            className: 'select-checkbox',
+                            targets: 1
+                        }],
+                        order: [[1, 'asc']],
+                        select: {
+                            style: 'os',
+                            selector: 'td:not(:last-child)' // no row selection on last column
+                        }
+                    });
+
+                }
+            });
+        }
+        function btnReceivedAllData_Click() {
+
+            var CommType = $('#ddlSearchCommType option:selected').text();
+            var InsurerName = $('#ddlSearchCompanyName option:selected').text();
+            var InsurerID = $('#ddlSearchCompanyName option:selected').val();
+            var StatementDate = $('#ddlSearchStatementDate option:selected').text();
+            var parameters = { CommType: CommType, InsurerName: InsurerName, InsurerID: InsurerID, StatementDate: StatementDate };
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "/LI/Received/ReceivedAllData",
+                data: parameters,
+                success: function (data) {
+                    alert("Success");
+
+                }
+            });
+
+        }
+        $(document).ready(function () {
+            $(document).ajaxStart(function () {
+                $("#spinner").css("display", "block");
+            });
+            $(document).ajaxComplete(function () {
+                $("#spinner").css("display", "none");
+            });
+            Load_GetLICommpanyName();
+
+        });
+    </script>
+    
+    <style>
+        .modal_Load {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: black;
+            z-index: 99;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+            -moz-opacity: 0.8;
+            min-height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <% include ../partials/header %>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="row wrapper border-bottom white-bg page-heading">
+            <div class="col-sm-4">
+                <h2>LI Received TR Page</h2>
+                <ol class="breadcrumb">
+                    <li>
+                        <a href="index">Dashboard</a>
+                    </li>
+                    <li>LI Directory</li>
+                    <li class="active">
+                        <strong>Received</strong>
+                    </li>
+                </ol>
+            </div>
+        </div>
+        <form class="form-horizontal">
+            <div class="row">
+                <div class="col-xs-12">
+
+                    <div class="box">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+                                        <h5>Filter Option</h5>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <div class="row">
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">Company Name</label>
+                                                <select ID="ddlSearchCompanyName" class="form-control" onchange="ddlCompanyName_SelectedIndexChanged();">
+                                                    <option selected="selected" value="0">--Select--</option>
+                                                </select>
+
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">Comm Type</label>
+                                                <select ID="ddlSearchCommType" class="form-control" onchange="ddlSearchCommType_SelectedIndexChanged();">
+                                                    <option selected="selected" value="0">--Select--</option>
+                                                </select>
+
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">Statement Date</label>
+                                                <select ID="ddlSearchStatementDate" class="form-control" onchange="ddlSearchStatementDate_SelectedIndexChanged();">
+                                                    <option selected="selected" value="0">--Select--</option>
+                                                </select>
+
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            &nbsp;
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">Total Revenue (GST)</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                                    <input type="text" ID="txtKeyinTotalRevenue" class="form-control" ReadOnly="true" />
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">System TR (GST)</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                                    <input type="text" ID="txtTotalRevenue" class="form-control" runat="server" ReadOnly="true" />
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <label class="font-normal">Received TR (GST)</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                                    <input type="text" ID="txtReceivedTR" class="form-control" runat="server" ReadOnly="true" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal_Load" id="spinner">
+                            <div class="spiner-example">
+                                <div class="sk-spinner sk-spinner-wave">
+                                    <div class="sk-rect1"></div>
+                                    <div class="sk-rect2"></div>
+                                    <div class="sk-rect3"></div>
+                                    <div class="sk-rect4"></div>
+                                    <div class="sk-rect5"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Table -->
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="ibox float-e-margins">
+                                    <div class="ibox-title">
+
+                                        <button type="button" ID="btnReceivedAllData" class="btn btn-primary"  onclick="btnReceivedAllData_Click();" >Receive All Data</button>
+                                    </div>
+                                    <div class="ibox-content">
+                                        <div class="table-responsive">
+                                            <table id="ReceivedTR" class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Insurer RepCode</th>
+                                                        <th>FAR Name</th>
+                                                        <th>Policy Number</th>
+                                                        <th>Client Name</th>
+                                                        <th>Plan Name</th>
+                                                        <th>Premium Mode</th>
+                                                        <th>Premium Paid</th>
+                                                        <th>Total Revenue</th>
+
+                                                        <th>Bonus</th>
+                                                        <th>Others</th>
+                                                        <th>TR W/O GST</th>
+                                                        <th>GST</th>
+                                                        <th>TR with GST</th>
+
+                                                    </tr>
+                                                </thead>
+
+                                                <tfoot>
+                                                    <tr>
+                                                        <th>Insurer RepCode</th>
+                                                        <th>FAR Name</th>
+                                                        <th>Policy Number</th>
+                                                        <th>Client Name</th>
+                                                        <th>Plan Name</th>
+                                                        <th>Premium Mode</th>
+                                                        <th>Premium Paid</th>
+                                                        <th>Total Revenue</th>
+
+                                                        <th>Bonus</th>
+                                                        <th>Others</th>
+                                                        <th>TR W/O GST</th>
+                                                        <th>GST</th>
+                                                        <th>TR with GST</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <% include ../partials/footer %>
+    </div>
+</body>
+</html>

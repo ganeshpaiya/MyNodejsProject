@@ -1,0 +1,366 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>FA | CommTrack</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <link href="/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/font-awesome/css/font-awesome.css" rel="stylesheet" />
+
+
+    <link href="/css/style.css" rel="stylesheet" />
+
+    <link href="/css/plugins/datapicker/datepicker3.css" rel="stylesheet" />
+    <script type="text/javascript">
+        function startCalc() {
+            var sta = false;
+            var FARPercentage = document.getElementById("txtFARPercentage").value;
+            var TR = document.getElementById("txtTotalRevenue").value;
+            var GST = document.getElementById("txtGST").value;
+            var Bonus = document.getElementById("txtbonus").value;
+            var Others = document.getElementById("txtOthers").value;
+            //alert("Hi");
+            if (TR != "") {
+                if (FARPercentage != "") {
+
+                    // var FARBI = (parseFloat(TR));
+                    if (Bonus != "" && Others != "") {
+                        var txtTRWoutGST = +Bonus + +TR + +Others;
+                        //var txtTRWoutGSTO = +Others + +txtTRWoutGSTB;
+                        // var txtTRWoutGST = +txtTRWoutGSTB + +txtTRWoutGSTO;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else if (Others != "" && Bonus == "") {
+                        var txtTRWoutGST = +Others + +TR;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else if (Others == "" && Bonus != "") {
+                        var txtTRWoutGST = +Bonus + +TR;
+                        txtTRWithoutGST.value = "" + parseFloat(txtTRWoutGST).toFixed(2) + "";
+                    }
+                    else {
+                        txtTRWithoutGST.value = "" + parseFloat(TR).toFixed(2) + "";
+                    }
+
+                    var FARBI = ((parseFloat(txtTRWithoutGST.value)) * (parseFloat(FARPercentage) / 100));
+                    var txtFARBI = document.getElementById("txtFARBI");
+                    txtFARBI.value = "" + parseFloat(FARBI).toFixed(2) + "";
+
+                }
+                else {
+                    var FARBI = (parseFloat(txtTRWithoutGST.value));
+                    var txtFARBI = document.getElementById("txtFARBI");
+                    txtFARBI.value = "" + parseFloat(FARBI).toFixed(2) + "";
+                }
+            }
+            else {
+                //alert("Please keying the Total Revenue");
+                //document.getElementById("txtTotalRevenue").focus();
+
+            }
+            if (GST != "") {
+                var TRWithGST = +GST + +txtTRWithoutGST.value;
+
+                txtTRwithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+            }
+            else {
+                var TRWithGST = +GST + +txtTRWithoutGST.value;
+
+                txtTRwithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+            }
+
+        }
+    </script>
+</head>
+<body>
+    <form id="form1" runat="server">
+        <asp:HiddenField ID="hf_ddlSearchCompanyName" runat="server" />
+        <asp:HiddenField ID="hf_ddlSearchPayoutDate" runat="server" />
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="ibox">
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="Adjustment">
+                                    <label for="lblAdjustmentType" class="control-label">Adjustment Type</label>
+                                    <asp:DropDownList ID="ddlAdjustmentType" runat="server" class="form-control" placeholder="Adjustment Type">
+                                        <asp:ListItem Value="" Text=""></asp:ListItem>
+                                        <asp:ListItem Value="Commission" Text="Commission"></asp:ListItem>
+                                        <asp:ListItem Value="Clawback" Text="Clawback"></asp:ListItem>
+                                        <asp:ListItem Value="Reversal" Text="Reversal"></asp:ListItem>
+                                        <asp:ListItem Value="Others" Text="Others"></asp:ListItem>
+                                    </asp:DropDownList>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="CompanyName">
+                                    <label class="font-normal">Company Name</label>
+                                    <asp:DropDownList ID="ddlCompanyName" class="form-control" runat="server" AutoPostBack="true"
+                                                      OnSelectedIndexChanged="ddlCompanyName_SelectedIndexChanged" placeholder="Company Name"></asp:DropDownList>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="FARName">
+                                    <label class="font-normal">FAR Name</label>
+                                    <asp:DropDownList ID="ddlFARName" class="form-control" runat="server" AutoPostBack="true"
+                                                      OnSelectedIndexChanged="ddlFARName_SelectedIndexChanged" placeholder="FAR Name"></asp:DropDownList>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="ClientName">
+                                    <label class="font-normal">Client Name</label>
+                                    <asp:TextBox ID="txtClientName" class="form-control" runat="server" placeholder="Client Name"></asp:TextBox>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="PlanName">
+                                    <label class="font-normal">Plan Name</label>
+                                    <asp:TextBox ID="txtPlanName" name="txtPlanName" class="form-control" runat="server" placeholder="Plan Name"></asp:TextBox>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="PolicyNumber">
+                                    <label class="font-normal">Policy Number</label>
+                                    <asp:TextBox ID="txtPolicyNumber" class="form-control" runat="server" placeholder="Policy Number"></asp:TextBox>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="CommencementDate">
+                                    <label class="font-normal">Commencement Date</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                        <asp:TextBox ID="txtCommencementDate" name="txtCommencementDate" class="form-control" runat="server" placeholder="Commencement Date"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="PremiumMode">
+                                    <label class="font-normal">Premium Mode</label>
+                                    <asp:DropDownList ID="ddlPremiumMode" runat="server" class="form-control" placeholder="Premium Mode">
+                                        <asp:ListItem Value="" Text=""></asp:ListItem>
+                                        <asp:ListItem Value="Y" Text="Y"></asp:ListItem>
+                                        <asp:ListItem Value="H" Text="H"></asp:ListItem>
+                                        <asp:ListItem Value="Q" Text="Q"></asp:ListItem>
+                                        <asp:ListItem Value="M" Text="M"></asp:ListItem>
+                                        <asp:ListItem Value="S" Text="S"></asp:ListItem>
+                                    </asp:DropDownList>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="PremiumPaid">
+                                    <label class="font-normal">Premium Paid</label>
+                                    <div class="input-group date">
+                                        <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                        <asp:TextBox ID="txtPremiumPaid" name="txtPremiumPaid" class="form-control" runat="server" placeholder="Premium Paid"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                       
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="FARType">
+                                    <label class="font-normal">FAR Type</label>
+                                    <asp:DropDownList ID="ddlFARType" runat="server" class="form-control" placeholder="FAR Type">
+                                        <asp:ListItem Value="" Text=""></asp:ListItem>
+                                        <asp:ListItem Value="Servicing FAR" Text="Servicing FAR"></asp:ListItem>
+                                        <asp:ListItem Value="Joint Work FAR" Text="Joint Work FAR"></asp:ListItem>
+                                        <asp:ListItem Value="Vesting FAR" Text="Vesting FAR"></asp:ListItem>
+                                    </asp:DropDownList>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="FARPercentage">
+                                    <label class="font-normal">FAR Percentage</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><i>%</i></div>
+                                        <asp:TextBox ID="txtFARPercentage" class="form-control" runat="server" onchange="startCalc();" placeholder="FAR Percentage"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="TotalRevenue">
+                                    <label class="font-normal">Total Revenue</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                        <asp:TextBox ID="txtTotalRevenue" name="txtTotalRevenue" class="form-control" runat="server" onchange="startCalc();" placeholder="Total Revenue"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="FARBonus">
+                                    <label class="font-normal">Bonus</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                        <asp:TextBox ID="txtbonus" class="form-control" runat="server" onchange="startCalc();" placeholder="Bonus"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="FAROthers">
+                                    <label class="font-normal">Others</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                        <asp:TextBox ID="txtOthers" class="form-control" runat="server" onchange="startCalc();" placeholder="Others"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="TR W/O GST">
+                                    <label class="font-normal">TR W/O GST</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                        <asp:TextBox ID="txtTRWithoutGST" name="txtTRWithoutGST" class="form-control" runat="server" onchange="startCalc();" placeholder="TRWithOutGST"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="GST">
+                                    <label class="font-normal">GST</label>
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-dollar"></i></span>
+                                        <asp:TextBox ID="txtGST" name="txtGST" class="form-control" onchange="startCalc();" runat="server" placeholder="GST"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="Total Revenue with GST">
+                                    <label class="font-normal">TR with GST</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                        <asp:TextBox ID="txtTRwithGST" name="txtTRwithGST" class="form-control" runat="server" placeholder="TRwithGST"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="FAR BI">
+                                    <label class="font-normal">FAR TR</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><i class="fa fa-dollar"></i></div>
+                                        <asp:TextBox ID="txtFARBI" name="txtFARBI" class="form-control" runat="server" placeholder="FAR TR"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="PremiumYear">
+                                    <label class="font-normal">Premium Year</label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon"></div>
+                                        <asp:TextBox ID="txtPremiumYear" name="txtPremiumYear" class="form-control" runat="server" placeholder="Premium Year"></asp:TextBox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="RevenueStatus">
+                                    <label class="font-normal">Revenue Status</label>
+                                    <asp:DropDownList ID="ddlRevenueStatus" runat="server" class="form-control" placeholder="Revenue Status">
+                                        <asp:ListItem Value="" Text=""></asp:ListItem>
+                                        <asp:ListItem Value="NTR" Text="NTR"></asp:ListItem>
+                                        <asp:ListItem Value="RTR" Text="RTR"></asp:ListItem>
+                                        <asp:ListItem Value="SNTR" Text="SNTR"></asp:ListItem>
+                                        <asp:ListItem Value="SRTR" Text="SRTR"></asp:ListItem>
+                                    </asp:DropDownList>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group" id="AdminRemarks">
+                                    <label class="font-normal">Admin Remarks</label>
+                                    <asp:TextBox ID="txtAdminRemarks" name="txtAdminRemarks" class="form-control" runat="server" placeholder="Admin Remarks"></asp:TextBox>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group" id="PayoutDate">
+                                    <label class="font-normal">Payout Date</label>
+                                    <div class="input-group">
+                                        <asp:DropDownList ID="ddlPayoutDay" class="form-control" Width="80px" runat="server" placeholder="Select Payout Day">
+                                            <asp:ListItem Value="00" Text="-"></asp:ListItem>
+                                            <asp:ListItem Value="05" Text="05"></asp:ListItem>
+                                            <asp:ListItem Value="20" Text="20"></asp:ListItem>
+                                        </asp:DropDownList>
+                                        &nbsp;
+                                        <asp:DropDownList ID="ddlPayoutMonth" class="form-control" Width="80px" runat="server" placeholder="Select Payout Month">
+                                            <asp:ListItem Value="00" Text="-"></asp:ListItem>
+                                            <asp:ListItem Value="01" Text="Jan"></asp:ListItem>
+                                            <asp:ListItem Value="02" Text="Feb"></asp:ListItem>
+                                            <asp:ListItem Value="03" Text="Mar"></asp:ListItem>
+                                            <asp:ListItem Value="04" Text="Apr"></asp:ListItem>
+                                            <asp:ListItem Value="05" Text="May"></asp:ListItem>
+                                            <asp:ListItem Value="06" Text="Jun"></asp:ListItem>
+                                            <asp:ListItem Value="07" Text="Jul"></asp:ListItem>
+                                            <asp:ListItem Value="08" Text="Aug"></asp:ListItem>
+                                            <asp:ListItem Value="09" Text="Sep"></asp:ListItem>
+                                            <asp:ListItem Value="10" Text="Oct"></asp:ListItem>
+                                            <asp:ListItem Value="11" Text="Nov"></asp:ListItem>
+                                            <asp:ListItem Value="12" Text="Dec"></asp:ListItem>
+                                        </asp:DropDownList>
+                                        &nbsp;
+                                        <asp:DropDownList ID="ddlPayoutYear" class="form-control" Width="80px" runat="server" placeholder="Select Payout Year">
+                                            <asp:ListItem Value="0000" Text="-"></asp:ListItem>
+                                        </asp:DropDownList>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ibox-footer">
+                <asp:Button ID="btnCancel" class="btn btn-default pull-left" runat="server" Text="Cancel" OnClick="btnCancel_Click" />
+                <asp:Button ID="btnAddData" class="btn btn-success pull-right" runat="server" Text="Add a Record" OnClick="btnAddData_Click" />
+            </div>
+        </div>
+
+       
+    </form>
+
+
+    <script src="/js/jquery-2.1.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="/js/inspinia.js"></script>
+
+
+    <!-- Data picker -->
+    <script src="/js/plugins/datapicker/bootstrap-datepicker.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#StatementDate .input-group.date').datepicker({
+                startView: 1,
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: "yyyy-mm-dd"
+            });
+        });
+    </script>
+
+
+</body>
+</html>

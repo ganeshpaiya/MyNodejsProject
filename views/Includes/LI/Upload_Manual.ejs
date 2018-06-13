@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+   <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <title>FAA | CommTrack</title>
+
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/font-awesome/css/font-awesome.css" rel="stylesheet"/>
+
+   
+    <link href="/css/style.css" rel="stylesheet"/>
+
+    <link href="/css/plugins/datapicker/datepicker3.css" rel="stylesheet"/>
+</head>
+<body class="row wrapper white-bg page-heading">
+    <script type="text/javascript">
+	$(document).ready(function () {
+	Load_GetLICommpanyName();
+	});
+
+        //$(document).ready(function () {
+        //    //loading the page
+        //    $(document).ajaxStart(function () {
+        //        $("#spinner").css("display", "block");
+        //    });
+
+        //    $(document).ajaxComplete(function () {
+        //        $("#spinner").css("display", "none");
+        //    });
+        //});
+    </script>
+	<script type="text/javascript">
+	function Load_GetLICommpanyName() {
+	  $.ajax({
+                type: "get",
+                dataType: "json",
+                url: "/CommonScript/GetLICommpanyName",
+                data: "",
+                success: function (results) {
+				var len = results.length;
+				for( var i = 0; i<len; i++){
+                     var id = results[i]['InsuranceBrokerID'];
+					 var name = results[i]['BrokerName'];
+                    $("#ddlCompanyName").append("<option value='"+id+"'>"+name+"</option>");
+
+                }
+				}
+
+				});
+	 }
+	 </script>
+    <script>
+            function startCalc() {
+            var sta = false;
+            var GST = document.getElementById("txtGST").value;
+            var TR = document.getElementById("txtTotalRevenue").value;
+            //alert("Hi");
+            if (TR != "") {
+                if (GST != "") {
+                    var TRWithGST = +GST + +TR; 
+                   
+                    txtTrWithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+                }
+                else {
+                    var TRWithGST = +GST + +TR; 
+                    var txtFARBI = document.getElementById("txtFARBI");
+                    txtTrWithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+                }
+            }
+            else {
+                //alert("Please keying the Total Revenue");
+                document.getElementById("txtTotalRevenue").focus();
+            }
+        }
+    </script>
+	<script type="text/javascript">
+	 function ManualAdd()
+	 {
+	 var txtTrWithGST= $('#txtTrWithGST').val();
+	 var txtTotalRevenue=$('#txtTotalRevenue').val();
+	 var uploadfile = $('#li_file_uploads').val();
+	 var txtGST = $('#txtGST').val();
+	 var ddlCompanyName = $('#ddlCompanyName').val();
+	 var CommType = $('#ddlCommType').val();
+	 var txtStatementDate = $('#txtStatementDate').val();
+	 var txtExchangeRate = $('#txtExchangeRate').val();
+	 if(!txtTrWithGST || !txtTotalRevenue || !ddlCompanyName || !CommType || !txtStatementDate ){
+	 alert("TRWithGST,TotalRevenue,Company Name,Commission Type,Statement Date, Upload Files:This Fileds Should Not Empty");
+
+	 }
+	 else
+	 {
+                var data = {};
+                data.txtTrWithGST = $('#txtTrWithGST').val();
+                data.txtGST = $('#txtGST').val();
+				data.CommType = $('#ddlCommType').val();
+				data.txtTotalRevenue = $('#txtTotalRevenue').val();
+                data.ddlCompanyName = $('#ddlCompanyName').val();
+				data.txtStatementDate = $('#txtStatementDate').val();
+				data.txtExchangeRate = $('#txtExchangeRate').val();
+				              
+                JSON.stringify(data);
+                console.log(data);
+
+
+ $.ajax({
+       type:"POST",
+       url:"/Includes/LI/Upload_Manual",
+     dataType: "json",
+    enctype :  "multipart/form-data",
+       data :data,
+        
+       success:function(data){
+	  // $("#uploadForm").submit();
+         
+       },
+     crossDomain:true
+
+ });
+ }
+ }
+	 </script>
+    <style>
+        .modal_Load
+        {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: black;
+            z-index: 99;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+            -moz-opacity: 0.8;
+            min-height: 100%;
+            width: 100%;
+        }
+    </style>
+
+<form id="contact_form" runat="server">
+   
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="form-group" id="CompanyName">
+                        <label class="font-normal">Company Name</label>
+                       <select ID="ddlCompanyName" class="form-control">
+						 <option selected="selected" value="0">--Select--</option>
+							
+							
+						</select>
+                    </div>
+                    <div class="form-group" id="CommType">
+                        <label class="font-normal">Commission Type</label>
+                        <select ID="ddlCommType" class="form-control">
+						 <option selected="selected" value="0">--Select--</option>
+	                       <option value="BC + OR">BC + OR</option>
+						</select>
+                    </div>
+                    <div class="form-group" id="StatementDate">
+                        <label class="font-normal">Statement Date</label>
+                        <div class="input-group date">
+                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                            <input type="text"  ID="txtStatementDate" class="form-control" placeholder="Statement Date"/>
+                        </div>
+                    </div>
+                    <div class="form-group" id="TotalRevenue">
+                        <label class="font-normal">TR W/O GST</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text"  ID="txtTotalRevenue" name="txtTotalRevenue" onchange="startCalc();"  class="form-control"  placeholder="Total Revenue"/>
+                        </div>
+                    </div>
+                    <div class="form-group" id="GST">
+                        <label class="font-normal">GST</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text"  ID="txtGST" name="txtGST" onchange="startCalc();"  class="form-control"  placeholder="GST"/>
+                        </div>
+                    </div>
+                    <div class="form-group" id="TRWithGST">
+                        <label class="font-normal">TR With GST</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text"  ID="txtTrWithGST" name="txtTrWithGST" class="form-control"  placeholder="TR With GST"/>
+                        </div>
+                    </div>
+                    <div class="form-group" id="ExchangeRate">
+                        <label class="font-normal">USD Exchange Rate</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text"  ID="txtExchangeRate" name="txtExchangeRate" class="form-control"  placeholder="Exchange Rate"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        &nbsp;
+                    </div>
+                    <div class="ibox-footer">
+                        <input type="submit" ID="btnCancel" class="btn btn-default pull-left"  Text="Cancel"  />
+                        <input type="submit" ID="btnUploadData" class="btn btn-success pull-right"  Text="Save" onclick="ManualAdd()"  />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+    <!-- Mainly scripts -->
+    <script src="/js/jquery-2.1.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+   
+    <script src="/js/inspinia.js"></script>
+    
+
+    <!-- Data picker -->
+   <script src="/js/plugins/datapicker/bootstrap-datepicker.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#StatementDate .input-group.date').datepicker({
+                startView: 1,
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: "yyyy-mm-dd"
+            });
+        });
+    </script>
+
+</body>
+</html>

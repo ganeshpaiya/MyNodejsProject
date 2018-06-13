@@ -1,0 +1,368 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <% include ../partials/head %>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            ////loading the page
+            //$(document).ajaxStart(function () {
+            //    $("#spinner").css("display", "block");
+            //});
+			
+            //$(document).ajaxComplete(function () {
+            //    $("#spinner").css("display", "none");
+            //});
+
+            $('#myModal_edit').on('show.bs.modal', function (event) {
+            // Get the record's ID via attribute
+            var url = event.relatedTarget.dataset.url;
+            $('#ifrm_update').attr("src", url);
+            });
+
+            $('#myModal_delete').on('show.bs.modal', function (event) {
+                // Get the record's ID via attribute
+                var url = event.relatedTarget.dataset.url;
+                $('#ifrm_delete').attr("src", url);
+            });
+        });
+    </script>
+	
+
+    <script type="text/javascript">
+	$(document).ready(function(){
+		Load_UploadData();
+		Load_GetLICommpanyName();
+	});
+	 function Load_GetLICommpanyName() {
+	  $.ajax({
+                type: "get",
+                dataType: "json",
+                url: "/CommonScript/GetLICommpanyName",
+                data: "",
+                success: function (results) {
+				var len = results.length;
+				for( var i = 0; i<len; i++){
+                     var id = results[i]['InsuranceBrokerID'];
+					 var name = results[i]['BrokerName'];
+                    $("#ddlCompanyName").append("<option value='"+id+"'>"+name+"</option>");
+
+                }
+				}
+
+				});
+	 }
+	 function Load_UploadData() {
+	  $.ajax({
+                type: "get",
+                dataType: "json",
+                url: "/LI/Upload/GetUploadData",
+                data: "",
+                success: function (results) {
+				
+				    $('#Uploadget').DataTable({
+					destroy: true,
+                        data: results,
+                        columns: [
+						 
+                            { data: 'InsurerName' },
+                            { data: 'CommType' },
+                            { data: 'StatementDate' },
+							{ data: 'BasicAmount', 'render': function (BasicAmount) { return '$ ' + BasicAmount; } },
+							{ data: 'GST', 'render': function (GST) { return '$ ' + GST; } },
+							{ data: 'TRWithGST', 'render': function (TRWithGST) { return '$ ' + TRWithGST; } },
+							{ data: 'TotalTransNo' },
+                            { data: 'Status' },
+                            { data: 'CreatedBy' },
+                            { data: 'CreatedOn' },
+                            { data: 'Action', 'render': function (data, type, full, meta) {   
+							
+                                    if (full.Action ===0) {
+										return'<button type ="button" class="btn-sm btn-success" data-toggle="modal" data-target="#myModal_edit" data-url ="'+ full.Edit_url +'">Edit</button>'
+										+'&nbsp; <button type ="button" class="btn-sm btn-danger" data-toggle="modal" data-target="#myModal_delete" data-url = "'+full.Delete_url+'">Delete</button>';
+                                  									
+                                    }
+                                    else {
+									return'<button type ="button" class="btn-sm btn-success" data-toggle="modal" data-target="#myModal_edit" data-url ="'+ full.Edit_url +'">Edit</button>'
+										+'&nbsp; <button type ="button" class="btn-sm btn-danger" data-toggle="modal" data-target="#myModal_delete" data-url = "'+full.Delete_url+'">Delete</button>'
+										+'&nbsp; <a href = " '+full.Manual_url+ '" class="btn-sm btn-warning" role="button">Manual Entry</a>';
+										
+                                        
+										
+                                    }
+									}
+                                   
+                              
+							
+							},
+													
+						
+                                 ],
+                        stateSave: true,
+                        //responsive: true,
+                        "dom": 'T<"clear">lfrtip',
+                        "tableTools": {
+                            "sSwfPath": "/js/plugins/dataTables/swf/copy_csv_xls_pdf.swf"
+                        },
+						 columnDefs: [
+                           
+                            { width: "80px", targets: 0 }, //InsurerName
+                            { width: "80px", targets: 1 }, //CommType
+                            { width: "80px", targets: 2 }, //StatementDate
+                            { width: "80px", targets: 3 }, //TotalRevenue
+                            { width: "80px", targets: 4 }, //GST
+                            { width: "80px", targets: 5 }, //TRWithGST
+                            { width: "80px", targets: 6 }, //TotalTransNo
+                            { width: "80px", targets: 7 }, //Status
+                            { width: "80px", targets: 8 }, //CreatedBy
+                            { width: "80px", targets: 9 }, //CreatedOn
+                            { width: "120px", targets: 10 },//Action
+                           
+                        ],
+
+                      
+                        order: [[1, 'asc']],
+                        select: {
+                            style: 'os',
+                            selector: 'td:not(:last-child)' // no row selection on last column
+                        }
+                    });
+                    
+
+                }
+            });
+	 }
+	 </script>
+
+
+    <style>
+        .modal_Load
+        {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: black;
+            z-index: 99;
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+            -moz-opacity: 0.8;
+            min-height: 100%;
+            width: 100%;
+        }
+    </style>
+	<script>
+function myFunction() {
+    alert("Page is loaded");
+}
+</script>
+</head>
+<body>
+<div id="wrapper">
+<% include ../partials/header %>
+ <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-4">
+            <h2>LI Upload Page</h2>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="index">Dashboard</a>
+                </li>
+                <li>LI Directory</li>
+                <li class="active">
+                    <strong>Upload</strong>
+                </li>
+            </ol>
+        </div>
+    </div>
+	<form runat="server" class="form-horizontal">
+	<div class="row">
+            <div class="col-xs-12">
+
+              
+                <div class="example-modal">
+                    <div class="modal border-right" id="myModal">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Upload Commission Files</h4>
+                          </div>
+                          <div class="modal-body">
+                              <iframe id="ifrm_add" frameBorder="0" width="100%" height="575px" src="/Upload/add"></iframe>
+                          </div>
+                         
+                        </div>
+                       
+                      </div>
+                     
+                    </div>
+                   
+                </div>
+				<div class="example-modal">
+                    <div class="modal border-right" id="myModal_edit">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Upload Commission Files</h4>
+                          </div>
+                          <div class="modal-body">
+                            <div class="box-body">
+                                
+                                <iframe id="ifrm_update" name="ifrm_update" style="border:none; width:100%; height:375px"></iframe>
+                            </div>
+                          </div>
+                        
+                        </div>
+                      
+                      </div>
+                     
+                    </div>
+                   
+                </div>
+				<div class="example-modal">
+                    <div class="modal border-right" id="myModal_delete">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Upload Commission Files</h4>
+                          </div>
+                          <div class="modal-body">
+                            <div class="box-body">
+                                <iframe id="ifrm_delete" name="ifrm_update" style="border:none; width:100%; height:175px"></iframe>
+                            </div>
+                          </div>
+                        </div>
+                       
+                      </div>
+                     
+                    </div>
+                   
+                </div>
+               
+
+               
+                <div class="example-modal">
+                    <div class="modal border-right" id="myModal_Manual">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Manual Entry Commission</h4>
+                          </div>
+                          <div class="modal-body">
+                              <iframe id="ifrm_Manual" frameBorder="0" width="100%" height="575px" src="/Includes/LI/Upload_Manual"></iframe>
+                          </div>
+                         
+                        </div>
+                      
+                      </div>
+                     
+                    </div>
+                   
+                </div>
+               
+
+                <div class="box">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>Filter Option</h5>
+                                </div>
+                                <div class="ibox-content form-inline">
+                                    <div class="form-group">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <label class="font-normal">Company Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                        <div class="input-group">
+                               <select ID="ddlCompanyName" class="form-control">
+						      <option selected="selected" value="0">--Select--</option>
+							
+							
+						</select>
+                                        </div>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" id="btnUploadFiles">Upload Files</button>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#myModal_Manual" id="btnManualEntry">Manual Entry</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                   
+
+                   
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-content">
+                                    <div class="table-responsive">
+                                        <table id="Uploadget" class="table table-striped table-bordered table-hover dataTables-example">
+                                            <thead>
+                                            <tr>
+                                                <th>Insurer Name</th>
+                                                <th>Comm Type</th>
+                                                <th>Statement Date</th>
+												<th>TR W/O GST</th>
+												<th>GST</th>
+                                                                                                
+                                                 <th>TR with GST</th>
+                                                <th>Transactions</th>
+                                                <th>Status</th>
+                                                <th>Uploaded By</th>
+                                                <th>Uploaded Time</th>
+												<th>Action</th>
+                                                
+                                            </tr>
+                                            </thead>
+                                            <tfoot>
+                                            <tr>
+                                                <th>Insurer Name</th>
+                                                <th>Comm Type</th>
+                                                <th>Statement Date</th>
+												 <th>TR W/O GST</th>
+												 <th>GST</th>
+                                                
+                                                 <th>TR with GST</th>
+                                                <th>Transactions</th>
+                                                <th>Status</th>
+                                                <th>Uploaded By</th>
+                                                <th>Uploaded Time</th>
+                                                <th>Action</th>
+                                            </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+	
+	</form>
+    
+    
+                       
+
+<% include ../partials/footer %>	
+ </div>	
+ 
+</body>
+</html>
+
+
+

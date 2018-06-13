@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+   <head runat="server">
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>FA | CommTrack</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/font-awesome/css/font-awesome.css" rel="stylesheet"/>
+
+    
+    <link href="/css/style.css" rel="stylesheet"/>
+
+    <link href="/css/plugins/datapicker/datepicker3.css" rel="stylesheet"/>
+     <script type="text/javascript">
+         function startCalc() {
+             var sta = false;
+             var GST = document.getElementById("txtGST").value;
+             var TR = document.getElementById("txtTotalRevenue").value;
+             //alert("Hi");
+             if (TR != "") {
+                 if (GST != "") {
+                     var TRWithGST = +GST + +TR;
+
+                     txtTRWithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+                 }
+                 else {
+                     var TRWithGST = (GST + TR);
+                     var txtFARBI = document.getElementById("txtFARBI");
+                     txtTRWithGST.value = "" + parseFloat(TRWithGST).toFixed(2) + "";
+                 }
+             }
+             else {
+                 //alert("Please keying the Total Revenue");
+                 document.getElementById("txtTotalRevenue").focus();
+             }
+         }
+    </script>
+ <script type="text/javascript">
+  $(document).ready(function(){
+   var newURL = window.location.pathname;
+  
+    Load_UploadData();
+    
+
+  });
+     </script>
+     <script type="text/javascript">
+	  function Load_UploadData() {
+   $.ajax({
+    type: 'GET',
+    url: 'http://localhost:1337/getIOT',
+    dataType: 'json',                              // <-- add this
+    contentType: 'application/json; charset=utf-8' // <-- remove this
+})
+.done(function(result) {
+    console.log(result);
+})
+.fail(function(xhr, status, error) {
+    console.log(error);
+})
+.always(function(data){
+});
+}
+ </script>
+</head>
+<body>
+<body class="row wrapper border-bottom white-bg page-heading">
+<form id="contact_form" >
+   
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox">
+                <div class="ibox-content">
+                    <div class="form-group" id="StatementDate">
+                        <label class="font-normal">Statement Date</label>
+                        <div class="input-group date">
+                            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                            <input type="text" ID="txtStatementDate" class="form-control" runat="server" placeholder="Statement Date"/>
+                        </div>
+                    </div>
+                    <div class="form-group" id="TotalRevenue">
+                        <label class="font-normal">TR W/O GST</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text" ID="txtTotalRevenue" onchange="startCalc();"  name="txtTotalRevenue" class="form-control" runat="server" placeholder="Total Revenue"/>
+                        </div>
+                    </div>
+                      <div class="form-group" id="GST">
+                        <label class="font-normal">GST</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text" ID="txtGST" name="txtGST" onchange="startCalc();"  class="form-control" runat="server" placeholder="GST"/>
+                        </div>
+                    </div>
+                    <div class="form-group" id="TRWithGST">
+                        <label class="font-normal">TR with GST</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text" ID="txtTRWithGST" name="txtTRWithGS" class="form-control" runat="server" placeholder="Total Revenue With GST"/>
+                        </div>
+                    </div>
+                    <div class="form-group" id="ExchangeRate">
+                        <label class="font-normal">USD Exchange Rate</label>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-dollar"></i></span> 
+                            <input type="text" ID="txtExchangeRate" name="txtExchangeRate" class="form-control" runat="server" placeholder="Exchange Rate"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        &nbsp;
+                    </div>
+                    <div class="ibox-footer">
+                        <input type="submit" ID="btnCancel" class="btn btn-default pull-left" runat="server" Text="Cancel"  />
+                        <input type="submit" ID="btnSaveData" class="btn btn-success pull-right" runat="server" Text="Save"  />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+    <!-- Mainly scripts -->
+    <script src="/js/jquery-2.1.1.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+    <script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+
+    <!-- Custom and plugin javascript -->
+    <script src="/js/inspinia.js"></script>
+    
+
+    <!-- Data picker -->
+   <script src="/js/plugins/datapicker/bootstrap-datepicker.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#StatementDate .input-group.date').datepicker({
+                startView: 1,
+                todayBtn: "linked",
+                keyboardNavigation: false,
+                forceParse: false,
+                autoclose: true,
+                format: "yyyy-mm-dd"
+            });
+        });
+    </script>
+</body>
+</html>
